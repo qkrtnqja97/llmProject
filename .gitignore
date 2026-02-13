@@ -1,0 +1,91 @@
+############################
+# 🔹 General
+############################
+.DS_Store
+Thumbs.db
+*.log
+*.pid
+*.seed
+*.out
+*.err
+.env
+.env.*
+!.env.example
+
+############################
+# 🔹 Node / React (frontend)
+############################
+node_modules/
+dist/
+build/
+coverage/
+vite.svg
+*.tsbuildinfo
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+############################
+# 🔹 Python (backend / llmserver)
+############################
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+.env/
+.venv/
+env/
+
+# Packaging
+build/
+dist/
+*.egg-info/
+
+# Test / coverage
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+
+############################
+# 🔹 Jupyter / LLM 실험용
+############################
+.ipynb_checkpoints/
+
+############################
+# 🔹 Docker / Infra
+############################
+*.tar
+docker-data/
+*.env.local
+*.env.production
+
+############################
+# 🔹 IDE
+############################
+.vscode/
+.idea/
+*.swp
+*.swo
+
+############################
+# 🔹 OS
+############################
+.DS_Store
+Thumbs.db
+
+############################
+# 🔹 LLM 관련 (중요)
+############################
+*.pt
+*.bin
+*.onnx
+*.ckpt
+*.safetensors
+models/
+checkpoints/
+
