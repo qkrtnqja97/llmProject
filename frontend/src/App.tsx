@@ -1,35 +1,23 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="page">
+      <h1>💬 AI 챗봇</h1>
+      <p>LLM 프로젝트 시작 🚀</p>
+
+      <div className="chatBox">
+        <div className="bubble bot">안녕! 나는 너의 업무 도우미야 😎</div>
+        <div className="bubble user">재고 확인해줘</div>
+        <div className="bubble bot">오케이. 어떤 품목이야?</div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+
+      <div className="inputRow">
+        <input className="input" placeholder="메시지 입력..." />
+        <button className="sendBtn">보내기</button>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;
