@@ -1,23 +1,28 @@
+// frontend/src/App.tsx
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import MainLayout from "./layouts/MainLayouts"; // 파일 이름이 MainLayouts.tsx라면 이렇게
+import SearchPage from "./pages/SearchPage";
+import NotesPage from "./pages/NotesPage";
+import SettingsPage from "./pages/SettingPage";
+import LoginPage from "./pages/LoginPage";
 import "./App.css";
 
-function App() {
+export default function App() {
   return (
-    <div className="page">
-      <h1>💬 AI 챗봇</h1>
-      <p>LLM 프로젝트 시작 🚀</p>
+    <BrowserRouter>
+      <Routes>
+        {/* 메인 레이아웃 (사이드바 + 상단) */}
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Navigate to="/search" replace />} />
+          <Route path="search" element={<SearchPage />} />
+          <Route path="notes" element={<NotesPage />} />
+          <Route path="settings" element={<SettingsPage />} />
+          <Route path="login" element={<LoginPage />} />
+        </Route>
 
-      <div className="chatBox">
-        <div className="bubble bot">안녕! 나는 너의 업무 도우미야 😎</div>
-        <div className="bubble user">재고 확인해줘</div>
-        <div className="bubble bot">오케이. 어떤 품목이야?</div>
-      </div>
-
-      <div className="inputRow">
-        <input className="input" placeholder="메시지 입력..." />
-        <button className="sendBtn">보내기</button>
-      </div>
-    </div>
+        {/* 이상한 주소 → /search로 보내기 */}
+        <Route path="*" element={<Navigate to="/search" replace />} />
+      </Routes>
+    </BrowserRouter>
   );
 }
-
-export default App;
