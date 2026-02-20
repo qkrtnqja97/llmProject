@@ -4,7 +4,7 @@
 from fastapi import Depends, Request
 import httpx
 
-from app.clients.llm_client import LLMClient
+from app.clients.ai.llm_client import LLMClient
 from app.services.chat_service import ChatService
 
 

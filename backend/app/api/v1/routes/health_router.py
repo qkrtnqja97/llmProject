@@ -5,11 +5,11 @@ from fastapi import APIRouter, Depends, status
 from fastapi.responses import JSONResponse
 
 from app.api.deps import get_llm_client
-from app.clients.llm_client import LLMClient
+from app.clients.ai.llm_client import LLMClient
 
 router = APIRouter(prefix="/health", tags=["health"])
 
-
+ 
 # 🔹 1. 백엔드 서버 상태
 @router.get("")
 async def backend_health():

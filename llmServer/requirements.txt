@@ -17,3 +17,8 @@ pydantic[email]==2.7.4
 pydantic-settings==2.12.0
 
 httpx
+
+# ===============================
+# Google
+# ===============================
+google-genai

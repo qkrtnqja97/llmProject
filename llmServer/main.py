@@ -3,12 +3,9 @@
 
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-from llm_server.core.model_loader import load_model
-from llm_server.api import health, generate
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    app.state.model = load_model()
     yield
 
 app = FastAPI(lifespan=lifespan)
