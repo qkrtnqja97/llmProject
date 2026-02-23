@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const API_URL = "http://192.168.0.243:8000/v1/";
+const API_URL = "http://192.168.0.243:8000/v1/";  // 또는 ipconfig로 확인한 진짜 IP
 
 export default function Chat() {
   const [value, setValue] = useState("");
@@ -71,3 +71,4 @@ export default function Chat() {
     </div>
   );
 }
+<h1 style={{ color: "red" }}>여기 Chat.tsx임</h1>
