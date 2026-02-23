@@ -2,7 +2,7 @@
 
 from fastapi import APIRouter
 from app.api.v1.routes import health_router
-from app. api.v1.routes import llm_router
+from app.api.v1.routes import llm_router
 
 router = APIRouter(prefix="/v1/llm")
 

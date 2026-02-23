@@ -11,7 +11,7 @@ class LLMClient:
 
     async def generate(self, prompt: str):
         res = await self.client.post(
-            f"{self.base_url}/llm/chat",
+            f"{self.base_url}/v1/llm/chat/generate",
             json={"prompt": prompt},
         )
         res.raise_for_status()
