@@ -14,7 +14,7 @@ services:
       - "8000:8000"
     volumes:
       - ../../backend:/backendWorkspace
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload # dev 환경에서만 프로세스 재시작할래.
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /backendWorkspace
     depends_on:
       - llm
       # - mysql
@@ -23,11 +23,13 @@ services:
     build:
       context: ../../llmServer
     container_name: llm
+    env_file:
+      - ../../llmServer/.env
     ports:
       - "9000:9000"
     volumes:
       - ../../llmServer:/llmWorkspace
-    command: uvicorn app.api.test.test_main:app --host 0.0.0.0 --port 9000 --reload
+    command: uvicorn app.main:app --host 0.0.0.0 --port 9000  --reload-dir /llmWorkspace
 
   # mysql:
   #   image: mysql:8.0

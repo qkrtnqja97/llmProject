@@ -7,7 +7,7 @@ from google import genai
 
 router = APIRouter(prefix="/llm", tags=["LLM"])
 
-client = genai.Client(api_key="AIzaSyB9OAniPg9yNKW1Eg9MC46wo0aZMT1nj_w")
+client = genai.Client(api_key="AIzaSyDaRFCTlkq_wR1fTiM1AhvWflj1q8exigQ")
 
 class ChatRequest(BaseModel):
     prompt: str
