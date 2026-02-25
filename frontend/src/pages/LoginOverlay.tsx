@@ -1,88 +1,97 @@
-import type { FormEvent } from "react";
+import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext";
+// ✅ CSS Module 임포트
+import styles from "./LoginOverlay.module.css";
 
-interface LoginOverlayProps {
-  onLogin: () => void;
-  onClose: () => void;
-}
+const LoginOverlay: React.FC = () => {
+  const { login, isLoading } = useAuth();
+  const [empId, setEmpId] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
 
-export default function LoginOverlay({ onLogin }: LoginOverlayProps) {
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: 나중에 실제 사원번호 검증 붙이면 여기에서
-    onLogin();
+    setError("");
+    try {
+      await login(empId, password);
+    } catch (err: any) {
+      setError(err.message || "로그인 정보가 올바르지 않습니다.");
+    }
   };
 
   return (
-    <div
-      className="
-        fixed inset-0 z-50 
-        flex items-center justify-center
-        bg-black/40 backdrop-blur-md
-      "
-    >
-      {/* 카드 */}
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-2xl p-8">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-full bg-black text-white flex items-center justify-center text-sm font-semibold">
+    <div className={styles.overlay}>
+      <div className={styles.card}>
+        <div className={styles.header}>
+          {/* 로고 아이콘 스타일은 기존 인라인 혹은 CSS에 추가 가능 */}
+          <div
+            style={{
+              backgroundColor: "#111827",
+              color: "white",
+              width: "48px",
+              height: "48px",
+              borderRadius: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 16px",
+              fontWeight: "bold",
+              fontSize: "20px",
+            }}
+          >
             AI
           </div>
-          <div className="flex flex-col">
-            <span className="text-[11px] text-zinc-500">
-              Enterprise Console
-            </span>
-            <span className="text-sm font-semibold">
-              Operations AI Portal
-            </span>
-          </div>
+          <h2 className={styles.title}>Biz AI Console</h2>
+          <p className={styles.subtitle}>사내 계정으로 로그인이 필요합니다.</p>
         </div>
 
-        <h2 className="text-lg font-semibold mb-1">사내 계정으로 로그인</h2>
-        <p className="text-[11px] text-zinc-500 mb-6">
-          재고/발주/회의 데이터를 조회하고 AI Copilot을 사용할 수 있습니다.
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* 🔢 사원번호 입력 */}
-          <div className="space-y-1">
-            <label className="text-[11px] text-zinc-600">사원번호</label>
+        <form onSubmit={handleSubmit} className={styles.form}>
+          <div className={styles.field}>
+            <label>사원번호</label>
             <input
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black"
-              placeholder="예: 2026-0312"
+              type="text"
+              placeholder="사원번호를 입력하세요"
+              value={empId}
+              onChange={(e) => setEmpId(e.target.value)}
+              required
             />
           </div>
 
-          {/* 🔐 비밀번호 (원하면 나중에 제거 가능) */}
-          <div className="space-y-1">
-            <label className="text-[11px] text-zinc-600">비밀번호</label>
+          <div className={styles.field}>
+            <label>비밀번호</label>
             <input
               type="password"
-              className="w-full rounded-xl border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-black"
-              placeholder="사내 계정 비밀번호"
+              placeholder="비밀번호를 입력하세요"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
           </div>
 
-          <div className="flex items-center justify-between text-[11px] text-zinc-500">
-            <label className="flex items-center gap-1">
-              <input type="checkbox" className="w-3 h-3" />
-              <span>로그인 상태 유지</span>
-            </label>
-            <button type="button" className="underline underline-offset-2">
-              비밀번호 찾기
-            </button>
-          </div>
+          {error && (
+            <p
+              style={{
+                color: "#ef4444",
+                fontSize: "12px",
+                fontWeight: "500",
+                margin: "4px 0",
+              }}
+            >
+              {error}
+            </p>
+          )}
 
           <button
             type="submit"
-            className="w-full mt-2 bg-black text-white py-2.5 rounded-2xl text-sm font-medium hover:opacity-90 transition"
+            disabled={isLoading}
+            className={styles.loginBtn}
           >
-            로그인
+            {isLoading ? "인증 중..." : "접속하기"}
           </button>
         </form>
-
-        <p className="mt-4 text-[10px] text-zinc-400 text-center">
-          외부 고객사는 담당자에게 계정 발급을 요청해 주세요.
-        </p>
       </div>
     </div>
   );
-}
+};
+
+export default LoginOverlay;

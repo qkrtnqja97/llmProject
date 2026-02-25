@@ -1,0 +1,76 @@
+.wrapper {
+  display: flex;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.assistantWrapper {
+  justify-content: flex-start;
+}
+
+.userWrapper {
+  justify-content: flex-end;
+}
+
+.bubble {
+  max-width: 80%;
+  padding: 12px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  line-height: 1.6;
+  position: relative;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+/* AI(Assistant) 스타일: 흰색 배경, 왼쪽 정렬 */
+.assistantBubble {
+  background-color: #ffffff;
+  border: 1px solid #e5e7eb;
+  color: #1f2937;
+  border-top-left-radius: 4px; /* 말풍선 느낌 */
+}
+
+/* 사용자(User) 스타일: 검은색 배경, 오른쪽 정렬 */
+.userBubble {
+  background-color: #111827;
+  color: #ffffff;
+  border-top-right-radius: 4px; /* 말풍선 느낌 */
+}
+
+.content {
+  white-space: pre-wrap;
+  word-break: break-all;
+}
+
+.timestamp {
+  font-size: 10px;
+  margin-top: 6px;
+  opacity: 0.6;
+  font-weight: 400;
+}
+
+/* AI 메시지 시간 색상 */
+.assistantBubble .timestamp {
+  color: #6b7280;
+}
+
+/* 사용자 메시지 시간 색상 */
+.userBubble .timestamp {
+  color: #9ca3af;
+}
+
+/* 말풍선 등장 애니메이션 */
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.wrapper {
+  animation: popIn 0.2s ease-out;
+}

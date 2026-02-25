@@ -1,0 +1,16 @@
+.btn {
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: opacity 0.2s;
+}
+.primary {
+  background: #111827;
+  color: white;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

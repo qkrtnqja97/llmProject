@@ -1,38 +1,36 @@
+// src/context/CompanyContext.tsx
 import React, { createContext, useContext, useState } from "react";
+import type { CompanyInfo } from "../shared/types";
 
-export type CompanyInfo = {
-  name: string;
-  address?: string;
-  logoUrl?: string;
-};
-
-type CompanyContextValue = {
+interface CompanyContextType {
   company: CompanyInfo;
-  setCompany: (info: CompanyInfo) => void;
-};
+  updateCompany: (info: CompanyInfo) => void; // ✅ setCompany에서 명칭 변경
+}
 
-const CompanyContext = createContext<CompanyContextValue | undefined>(
-  undefined,
-);
-
-const defaultCompany: CompanyInfo = {
-  name: "biz ai",
-};
+const CompanyContext = createContext<CompanyContextType | undefined>(undefined);
 
 export const CompanyProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [company, setCompany] = useState<CompanyInfo>(defaultCompany);
+  const [company, setCompany] = useState<CompanyInfo>({
+    name: "biz ai",
+    logoUrl: "",
+    address: "서울특별시 강남구",
+  });
+
+  const updateCompany = (info: CompanyInfo) => {
+    setCompany(info);
+  };
 
   return (
-    <CompanyContext.Provider value={{ company, setCompany }}>
+    <CompanyContext.Provider value={{ company, updateCompany }}>
       {children}
     </CompanyContext.Provider>
   );
 };
 
-export const useCompany = (): CompanyContextValue => {
-  const ctx = useContext(CompanyContext);
-  if (!ctx) throw new Error("useCompany must be used within CompanyProvider");
-  return ctx;
+export const useCompany = () => {
+  const context = useContext(CompanyContext);
+  if (!context) throw new Error("useCompany error");
+  return context;
 };

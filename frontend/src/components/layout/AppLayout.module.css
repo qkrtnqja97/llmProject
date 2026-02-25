@@ -1,0 +1,45 @@
+/* 전체 레이아웃 루트 */
+.appRoot {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  background-color: #f5f6fb; /* zinc-50 느낌의 연한 배경 */
+  overflow: hidden; /* 전체 페이지 스크롤 방지 (내부 main에서 스크롤) */
+}
+
+/* 메인 컨텐츠 래퍼 */
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* flex 자식의 min-width 이슈 방지 */
+  overflow: hidden;
+}
+
+/* 실제 스크롤이 일어나는 영역 */
+.content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px; /* 기본 모바일 패딩 */
+}
+
+/* 테블릿/데스크탑 이상 패딩 적용 */
+@media (min-width: 768px) {
+  .content {
+    padding: 40px;
+  }
+}
+
+/* 컨텐츠 중앙 정렬 및 너비 제한 */
+.maxContainer {
+  max-width: 1152px; /* max-w-6xl */
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* 헤더와 메인 사이의 미세한 흐름 조정이 필요할 경우를 대비 */
+.headerTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #111827;
+}
