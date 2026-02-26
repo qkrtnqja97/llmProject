@@ -1,11 +1,18 @@
 # /llmServer/app/provider/llm/gemini_llm_provider.py
 
+import logging
+import time
+
 from google import genai
 from google.genai import types
 from app.providers.llm.base import BaseLLMProvider
 from app.schemas.chat import ChatMessage
 
+from app.core.logging.logging_tags import LogTag
+from app.core.logging.request_context import get_request_id
+from app.core.logging.cost_calculator import calculate_gemini_cost
 
+logger = logging.getLogger(__name__)
 
 class GeminiLLMProvider(BaseLLMProvider):
 
@@ -15,11 +22,41 @@ class GeminiLLMProvider(BaseLLMProvider):
 
     async def generate(self, messages: list[ChatMessage]):
 
+        request_id = get_request_id()
+        start = time.time()
+
+        ### 실제 호출 로직
         contents = self._convert_to_gemini(messages)
 
         response = self.client.models.generate_content(
             model=self.model,
             contents=contents,
+        )
+        ###
+
+        latency_ms = int((time.time() - start) * 1000)
+
+        usage = getattr(response, "usage", None)
+
+        prompt_tokens = getattr(usage, "prompt_tokens", None)
+        completion_tokens = getattr(usage, "candidates_tokens", None)
+        total_tokens = getattr(usage, "total_tokens", None)
+
+        cost = calculate_gemini_cost(prompt_tokens, completion_tokens)
+
+
+        logger.info(
+            "Gemini API call",
+            extra={
+                "tag": LogTag.API_LLM,
+                "request_id": request_id,
+                "model": self.model,
+                "latency_ms": latency_ms,
+                "prompt_tokens": prompt_tokens,
+                "completion_tokens": completion_tokens,
+                "total_tokens": total_tokens,
+                "cost_usd": cost,
+            },
         )
 
         return response.text

@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     Answer clearly and concisely.
     """
 
+    COHERE_API_KEY: str
+
     class Config:
         env_file = ".env"
 

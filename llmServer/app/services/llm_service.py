@@ -1,9 +1,16 @@
 # llmServer/app/services/llm_service.py
 
+import logging
+import time
+
 from app.providers.registry import ProviderRegistry
 from app.schemas.chat import ChatMessage
 from app.core.config import settings
 
+from app.core.logging.logging_tags import LogTag
+from app.core.logging.request_context import generate_request_id
+
+logger = logging.getLogger(__name__)
 
 class LLMService:
 
@@ -18,6 +25,20 @@ class LLMService:
         - 메시지 리스트는 내부에서 system/user로 구성
         - 모델은 default_model_name 사용
         """
+        request_id = get_request_id()
+
+        logger.info(
+            "LLM generate start",
+            extra={
+                "tag": LogTag.ROUTER,
+                "request_id": request_id,
+                "model": self.default_model_name,
+                "prompt_length": len(prompt),
+            },
+        )
+
+        start = time.time()
+
         # 1️⃣ provider 선택
         provider = self._select_provider(prompt)
 
@@ -33,8 +54,21 @@ class LLMService:
             ),
         ]
 
+        response = await provider.generate(messages)
+
+        latency_ms = int((time.time() - start) * 1000)
+
+        logger.info(
+            "LLM generate success",
+            extra={
+                "tag": LogTag.API_LLM,
+                "request_id": request_id,
+                "latency_ms": latency_ms,
+            },
+        )
+
         # 3️⃣ generate 호출
-        return await provider.generate(messages)
+        return await response
 
     def _select_provider(self, prompt: str):
         """
