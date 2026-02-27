@@ -1,12 +1,12 @@
 import logging
 from typing import List
 import cohere
-from app.providers.reranker.base import BaseReranker
+from app.providers.reranker.base import BaseRerankerProvider
 
 logger = logging.getLogger(__name__)
 
 
-class CohereRerankerProvider(BaseReranker):
+class CohereRerankerProvider(BaseRerankerProvider):
 
     def __init__(self, api_key: str, model_name: str = "rerank-v3.5"):
         self.model_name = model_name

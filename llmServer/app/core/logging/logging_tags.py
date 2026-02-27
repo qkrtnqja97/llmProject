@@ -8,3 +8,5 @@ class LogTag:
     DB = "DB"
     FEEDBACK = "FEEDBACK"
     REQUEST = "REQUEST"
+    SQL_GENERATION = "SQL_GENERATION"
+    ANSWER = "ANSWER"

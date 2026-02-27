@@ -1,17 +1,21 @@
 # llmServer/services/rerank_service.py
 
 # app/services/rerank_service.py
+import logging
+from typing import List, Dict, Any
+from app.providers.reranker.base import BaseRerankerProvider
+
+logger = logging.getLogger(__name__)
 
 class RerankService:
-
-    def __init__(self, reranker):
+    def __init__(self, reranker: BaseRerankerProvider):
         self.reranker = reranker
 
     def rerank(
         self,
         query: str,
         docs: list[str],
-        metas: list[dict],
+        metas: List[Dict[str, Any]],
         top_n: int = 3,
         with_scores: bool = False,
     ):
@@ -37,7 +41,10 @@ class RerankService:
                 return final_docs, final_metas, final_scores
             return final_docs, final_metas
 
-        except Exception:
+        except Exception as e:
+            # 에러 로그 기록
+            logger.error(f"Reranking failed: {str(e)}. Falling back to original order.")
+          
             # fallback 정책
             fallback_docs = docs[:top_n]
             fallback_metas = metas[:top_n]

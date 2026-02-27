@@ -1,6 +1,5 @@
 # llmServer/app/services/entity_service.py
 
-from rapidfuzz import process, fuzz
 from app.utils import text_util
 
 class EntityResolverService:
@@ -96,7 +95,8 @@ class EntityResolverService:
             question,
             cand_docs,
             cand_metas,
-            top_n=top_n
+            top_n=top_n,
+            with_scores=True
         )
 
         hints = []
@@ -107,6 +107,32 @@ class EntityResolverService:
                 )
 
         return ", ".join(hints) if hints else ""
+    
+    # 아직 메모리 기능은 안넣음 
+    # def _inject_memory(self, question: str, memory: dict) -> str:
+    #     if not memory:
+    #         return question
+
+    #     q = question
+
+    #     PRONOUN_MAP = {
+    #         "이 제품": "last_product",
+    #         "해당 제품": "last_product",
+    #         "그 제품": "last_product",
+    #         "이 고객사": "last_vendor",
+    #         "해당 고객사": "last_vendor",
+    #         "이 제조사": "last_manufacturer",
+    #         "해당 제조사": "last_manufacturer",
+    #     }
+
+    #     for pronoun, key in PRONOUN_MAP.items():
+    #         if pronoun in q and memory.get(key):
+    #             q = q.replace(pronoun, f"'{memory[key]}'")
+
+    #     if "같은 기간" in q and memory.get("last_date_range"):
+    #         q += f" (기간조건: {memory['last_date_range']})"
+
+    #     return q
 
     # =========================
     # 외부 호출용 API
@@ -115,6 +141,9 @@ class EntityResolverService:
         refined = self._fuzzy_correct(question)
         refined = self._vector_correct_part_number(refined)
         synonym_hint = self._retrieve_synonyms(question)
+        # 아직 메모리 기능은 안넣음 
+        # refined = self._inject_memory(refined, memory)
+
 
         return {
             "refined_question": refined,

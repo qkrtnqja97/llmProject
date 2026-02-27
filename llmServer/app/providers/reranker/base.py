@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-class BaseReranker(ABC):
+class BaseRerankerProvider(ABC):
 
     @abstractmethod
     def score(self, query: str, docs: List[str]) -> List[float]:
