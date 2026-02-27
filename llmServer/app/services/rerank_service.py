@@ -7,6 +7,7 @@ from app.providers.reranker.base import BaseRerankerProvider
 
 logger = logging.getLogger(__name__)
 
+
 class RerankService:
     def __init__(self, reranker: BaseRerankerProvider):
         self.reranker = reranker
@@ -44,7 +45,7 @@ class RerankService:
         except Exception as e:
             # 에러 로그 기록
             logger.error(f"Reranking failed: {str(e)}. Falling back to original order.")
-          
+
             # fallback 정책
             fallback_docs = docs[:top_n]
             fallback_metas = metas[:top_n]

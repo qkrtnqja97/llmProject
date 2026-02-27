@@ -1,24 +1,25 @@
 # llmServer/app/services/llm_service.py
 
-# llmServer/app/services/llm_service.py
-
 import logging
 import time
 from typing import List
 
 from app.providers.registry import ProviderRegistry
+from app.prompts.registry import PromptRegistry
 from app.schemas.chat import ChatMessage
 from app.core.config import settings
 from app.core.logging.logging_tags import LogTag
 from app.core.logging.request_context import get_request_id
+
 
 logger = logging.getLogger(__name__)
 
 
 class LLMService:
 
-    def __init__(self, registry: ProviderRegistry):
-        self.registry = registry
+    def __init__(self, llm_registry: ProviderRegistry, prompt_registry: PromptRegistry):
+        self.llm_registry = llm_registry
+        self.prompt_registry = prompt_registry
 
         # 🔥 기본 모델 전략 - 추후 환경변수나 이런걸로 빼자.
         self.router_model = "gemini-2.5-flash"
@@ -33,7 +34,7 @@ class LLMService:
         return await self._generate_internal(
             prompt=prompt,
             model_name=self.router_model,
-            system_prompt=settings.ROUTER_SYSTEM_PROMPT,
+            system_prompt=self.prompt_registry.get_router_prompt(),
             log_tag=LogTag.ROUTER,
         )
 
@@ -41,7 +42,7 @@ class LLMService:
         return await self._generate_internal(
             prompt=prompt,
             model_name=self.sql_model,
-            system_prompt=settings.SQL_SYSTEM_PROMPT,
+            system_prompt=self.prompt_registry.get_sql_prompt(),
             log_tag=LogTag.SQL_GENERATION,
         )
 
@@ -49,7 +50,7 @@ class LLMService:
         return await self._generate_internal(
             prompt=prompt,
             model_name=self.answer_model,
-            system_prompt=settings.DEFAULT_SYSTEM_PROMPT,
+            system_prompt=self.prompt_registry.get_answer_prompt(),
             log_tag=LogTag.ANSWER,
         )
 
@@ -79,15 +80,23 @@ class LLMService:
 
         start = time.time()
 
-        provider = self.registry.get_llm(model_name)
+        try:
+            provider = self.llm_registry.get_llm(model_name)
 
-        messages: List[ChatMessage] = [
-            ChatMessage(role="system", content=system_prompt),
-            ChatMessage(role="user", content=prompt),
-        ]
+            messages: List[ChatMessage] = [
+                ChatMessage(role="system", content=system_prompt),
+                ChatMessage(role="user", content=prompt),
+            ]
 
-        # 🔥 단 한 번만 await
-        response_text = await provider.generate(messages)
+            print("🔥 LLM 실제 호출 직전")
+
+            response_text = await provider.generate(messages)
+
+            print("🔥 LLM 실제 호출 완료")
+
+        except Exception as e:
+            print("💥 LLM 내부 예외 발생:", repr(e))
+            raise  # 🔥 반드시 다시 던져라 (RouterService로 전파)
 
         latency_ms = int((time.time() - start) * 1000)
 

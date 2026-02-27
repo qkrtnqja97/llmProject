@@ -1,5 +1,6 @@
 # llmServer/app/infra/rag/vector_repository
 
+
 class VectorRepository:
     """
     Chroma 또는 다른 벡터 DB 접근 전용 계층.

@@ -4,10 +4,12 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from google import genai
+from app.config import settings
 
 router = APIRouter(prefix="/llm", tags=["LLM"])
 
-client = genai.Client(api_key="AIzaSyDaRFCTlkq_wR1fTiM1AhvWflj1q8exigQ")
+client = genai.Client(api_key=settings.GEMINI_API_KEY)
+
 
 class ChatRequest(BaseModel):
     prompt: str
@@ -17,10 +19,7 @@ class ChatRequest(BaseModel):
 async def llm_chat(request: ChatRequest):
     # 🔥 지금은 그냥 테스트용 응답
     response = client.models.generate_content(
-    model="gemini-2.5-flash-lite", 
-    contents={request.prompt}
+        model="gemini-2.5-flash-lite", contents={request.prompt}
     )
 
-    return {
-        "reply": f"LLM Response to : {response.text}"
-    }
+    return {"reply": f"LLM Response to : {response.text}"}

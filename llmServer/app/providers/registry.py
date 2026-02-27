@@ -11,12 +11,13 @@ from app.core.logging.request_context import get_request_id
 
 logger = logging.getLogger(__name__)
 
+
 class ProviderRegistry:
     def __init__(self):
         # LLM과 Reranker 저장소를 분리하여 관리
         self._llms: Dict[str, BaseLLMProvider] = {}
 
-        self._embeddings: Dict[str, BaseEmbeddingProvider] = {} 
+        self._embeddings: Dict[str, BaseEmbeddingProvider] = {}
 
         self._rerankers: Dict[str, BaseRerankerProvider] = {}
 
@@ -32,8 +33,8 @@ class ProviderRegistry:
         )
 
     def get_llm(self, model_name: str) -> BaseLLMProvider:
-        request_id = get_request_id() # 누락되었던 request_id 할당 추가
-        
+        request_id = get_request_id()  # 누락되었던 request_id 할당 추가
+
         if model_name not in self._llms:
             logger.error(
                 "LLM Model not registered",
@@ -44,7 +45,7 @@ class ProviderRegistry:
                 },
             )
             raise ValueError(f"LLM Model '{model_name}' not registered")
-        
+
         logger.info(
             "LLM Provider selected",
             extra={
@@ -54,8 +55,8 @@ class ProviderRegistry:
             },
         )
         return self._llms[model_name]
-    
-    # --- Embedding Provider 관리 ---  
+
+    # --- Embedding Provider 관리 ---
     def register_embedding(self, model_name: str, provider):
         self._embeddings[model_name] = provider
         logger.info(
@@ -65,10 +66,10 @@ class ProviderRegistry:
                 "model": model_name,
             },
         )
-      
+
     def get_embedding(self, model_name: str):
         request_id = get_request_id()
-        
+
         if model_name not in self._embeddings:
             logger.error(
                 "Embedding Model not registered",
@@ -79,7 +80,7 @@ class ProviderRegistry:
                 },
             )
             raise ValueError(f"Embedding Model '{model_name}' not registered")
-        
+
         logger.info(
             "Embedding Provider selected",
             extra={
@@ -88,7 +89,7 @@ class ProviderRegistry:
                 "model": model_name,
             },
         )
-        return self._embeddings[model_name] 
+        return self._embeddings[model_name]
 
     # --- Reranker Provider 관리 ---
     def register_reranker(self, model_name: str, provider: BaseRerankerProvider):
@@ -103,7 +104,7 @@ class ProviderRegistry:
 
     def get_reranker(self, model_name: str) -> BaseRerankerProvider:
         request_id = get_request_id()
-        
+
         if model_name not in self._rerankers:
             logger.error(
                 "Reranker Model not registered",
@@ -114,7 +115,7 @@ class ProviderRegistry:
                 },
             )
             raise ValueError(f"Reranker Model '{model_name}' not registered")
-        
+
         logger.info(
             "Reranker Provider selected",
             extra={

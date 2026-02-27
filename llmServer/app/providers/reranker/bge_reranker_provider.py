@@ -6,6 +6,7 @@ from app.providers.reranker.base import BaseRerankerProvider
 
 logger = logging.getLogger(__name__)
 
+
 class BGERerankerProvider(BaseRerankerProvider):
 
     def __init__(self):

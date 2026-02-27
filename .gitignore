@@ -89,3 +89,6 @@ Thumbs.db
 models/
 checkpoints/
 
+
+## 개인 설정
+pyproject.toml

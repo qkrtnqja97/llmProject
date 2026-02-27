@@ -2,6 +2,11 @@
 
 from app.utils import text_util
 
+# 타입 지정용
+from app.services.rerank_service import RerankService
+from app.infra.rag.vector_repository import VectorRepository
+
+
 class EntityResolverService:
     """
     질문 안의 엔티티를 정제하는 도메인 서비스.
@@ -13,10 +18,15 @@ class EntityResolverService:
     ENTITY_FETCH_TOP_K = 3
     ENTITY_DISTANCE_THRESHOLD = 0.15
     FUZZY_THRESHOLD = 70
-    SYNONYM_RERANK_THRESHOLD = 0.3
+    SYNONYM_RERANK_THRESHOLD = 0.2
     SYNONYM_FETCH_TOP_K = 10
 
-    def __init__(self, entity_cache: dict, vector_repository, reranker):
+    def __init__(
+        self,
+        entity_cache: dict,
+        vector_repository: VectorRepository,
+        reranker: RerankService,
+    ):
         self.entity_cache = entity_cache
         self.vector_repository = vector_repository
         self.reranker = reranker
@@ -28,16 +38,19 @@ class EntityResolverService:
     # =========================
     def _fuzzy_correct(self, question: str) -> str:
         refined = question
-        names = self.entity_cache.get("manufacturers", []) + self.entity_cache.get("vendors", [])
+        names = self.entity_cache.get("manufacturers", []) + self.entity_cache.get(
+            "vendors", []
+        )
 
         for word in question.split():
             if len(word) >= 2:
                 # Utils를 사용하여 "어떻게" 하는지 감춤
-                matched_name = text_util.get_fuzzy_match(word, names, self.FUZZY_THRESHOLD)
+                matched_name = text_util.get_fuzzy_match(
+                    word, names, self.FUZZY_THRESHOLD
+                )
                 if matched_name:
                     refined = refined.replace(word, matched_name)
         return refined
-    
 
     # =========================
     # 2. part_number 벡터 보정
@@ -49,7 +62,7 @@ class EntityResolverService:
         refined = question
 
         # 파트넘버 벡터 유사도 비교 (top_k 설정 가능. default:3)
-        candidates = self.vector_repository.Search(
+        candidates = self.vector_repository.search(
             collection_name="entity",
             query=question,
             top_k=self.ENTITY_FETCH_TOP_K,
@@ -72,7 +85,7 @@ class EntityResolverService:
 
     # =========================
     # 3. 동의어 검색 (벡터 + 리랭킹)
-    # 
+    #
     # 후보 10개 → 리랭킹 → 상위 n개 중 점수 임계값 통과분 반환
     # =========================
     def _retrieve_synonyms(self, question: str, top_n: int = 3) -> str:
@@ -92,23 +105,22 @@ class EntityResolverService:
 
         # 리랭킹 + 점수
         final_docs, final_metas, final_scores = self.reranker.rerank(
-            question,
-            cand_docs,
-            cand_metas,
-            top_n=top_n,
-            with_scores=True
+            question, cand_docs, cand_metas, top_n=top_n, with_scores=True
         )
 
         hints = []
         for doc, meta, score in zip(final_docs, final_metas, final_scores):
+            # 디버깅용 프린트문
+            # print("DEBUG:", doc, score)
+            # print("DEBUG synonym 후보 수:", len(cand_docs))
             if score > self.SYNONYM_RERANK_THRESHOLD:  # 리랭커 정규화 점수 임계값
                 hints.append(
                     f"'{doc}' → '{meta.get('canonical')}' ({meta.get('type')})"
                 )
 
         return ", ".join(hints) if hints else ""
-    
-    # 아직 메모리 기능은 안넣음 
+
+    # 아직 메모리 기능은 안넣음
     # def _inject_memory(self, question: str, memory: dict) -> str:
     #     if not memory:
     #         return question
@@ -141,9 +153,8 @@ class EntityResolverService:
         refined = self._fuzzy_correct(question)
         refined = self._vector_correct_part_number(refined)
         synonym_hint = self._retrieve_synonyms(question)
-        # 아직 메모리 기능은 안넣음 
+        # 아직 메모리 기능은 안넣음 -> 메모리 서비스로 따로 빼기.
         # refined = self._inject_memory(refined, memory)
-
 
         return {
             "refined_question": refined,
