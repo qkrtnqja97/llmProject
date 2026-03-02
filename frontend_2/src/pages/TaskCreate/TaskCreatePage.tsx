@@ -3,7 +3,7 @@ import * as LucideIcons from "lucide-react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import { workService } from "../services/workService";
+import { workService } from "../../services/workService";
 import styles from "./TaskCreatePage.module.css";
 
 interface Task {

@@ -1,13 +1,16 @@
 // src/routes/index.tsx
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import MainLayout from "@layouts/MainLayout";
-import HomePage from "@pages/HomePage";
-import Dashboard from "@pages/DashboardPage";
-import ContactPage from "@pages/ContactPage";
-import TaskCreatePage from "@pages/TaskCreatePage";
-import AISearchPage from "@pages/AISearchPage";
-import ProductManagePage from "@pages/ProductManagePage";
-import InventoryManagePage from "@pages/InventoryManagePage";
+import HomePage from "@pages/Home/HomePage";
+import Dashboard from "@pages/Dashboard/DashboardPage";
+import ContactPage from "@pages/Contact/ContactPage";
+import TaskCreatePage from "@pages/TaskCreate/TaskCreatePage";
+import AISearchPage from "@pages/AISearch/AISearchPage";
+import ProductManagePage from "@pages/ProductManage/ProductManagePage";
+import InventoryManagePage from "@pages/InventoryManage/InventoryManagePage";
+import WorkLogPage from "@pages/WorkLog/WorkLogPage";
+import ResourcesPage from "@pages/Resource/ResourcePage";
+import MinutesPage from "@pages/Minute/MinutesPage";
 import { PATHS } from "./paths";
 
 const Placeholder = ({ title }: { title: string }) => (
@@ -72,8 +75,8 @@ export const router = createBrowserRouter([
 
       // 업무관리 그룹
       { path: PATHS.WORK.CREATE, element: <TaskCreatePage /> },
-      { path: PATHS.WORK.LOG, element: <Placeholder title="일지 작성" /> },
-      { path: PATHS.WORK.MEMO, element: <Placeholder title="회의록" /> },
+      { path: PATHS.WORK.LOG, element: <WorkLogPage /> },
+      { path: PATHS.WORK.MEMO, element: <MinutesPage /> },
 
       // 관리(물류) 그룹
       { path: PATHS.MANAGE.INVENTORY, element: <InventoryManagePage /> },
@@ -85,7 +88,7 @@ export const router = createBrowserRouter([
 
       // 기타 메뉴
       { path: PATHS.CONTACT, element: <ContactPage /> },
-      { path: PATHS.RESOURCES, element: <Placeholder title="자료실" /> },
+      { path: PATHS.RESOURCES, element: <ResourcesPage /> },
       { path: PATHS.HISTORY, element: <Placeholder title="검색기록" /> },
       { path: PATHS.SETTINGS, element: <Placeholder title="설정" /> },
     ],

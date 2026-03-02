@@ -1,16 +1,88 @@
-/* DashboardPage.module.css - 차트 크기 오류 해결 버전 */
+/* --- 📍 커스텀 드롭다운 (브라우저 기본 UI 대체) --- */
+.customSelectContainer {
+  position: relative;
+  width: 105px;
+  height: 32px;
+  background-color: var(--bg-item);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  cursor: pointer;
+  user-select: none;
+}
 
+.customSelectContainer:hover {
+  border-color: var(--accent-color);
+  background-color: var(--bg-card);
+}
+
+.customSelectTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  height: 100%;
+  padding: 0 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* 📍 여기가 핵심: 클릭 시 나오는 목록창 */
+.customOptions {
+  position: absolute;
+  top: 38px;
+  left: 0;
+  width: 100%;
+  background-color: var(--bg-card); /* 테마의 카드 배경색 사용 */
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 4px;
+  margin: 0;
+  list-style: none;
+  z-index: 1000;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  animation: dropdownFade 0.2s ease-out;
+}
+
+.customOptions li {
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.customOptions li:hover {
+  background-color: var(--bg-item);
+  color: var(--accent-color);
+}
+
+.activeOption {
+  background-color: var(--bg-item);
+  color: var(--accent-color) !important;
+  font-weight: 700;
+}
+
+.rotate {
+  transform: rotate(180deg);
+  transition: transform 0.2s ease;
+}
+
+@keyframes dropdownFade {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- 이하 기존 공통 스타일 --- */
 * {
   box-sizing: border-box;
 }
-
-/* 시스템 다크모드 컨트롤 최적화 */
-:local(select),
-:local(option),
-:local(button) {
-  color-scheme: dark;
-}
-
 .container {
   padding: 24px;
   max-width: 1600px;
@@ -18,27 +90,22 @@
   color: var(--text-main);
   animation: fadeIn 0.4s ease-out;
 }
-
 .header {
   margin-bottom: 32px;
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 20px;
 }
-
 .title {
   font-size: 1.8rem;
   font-weight: 500;
-  letter-spacing: 0.02em;
+  letter-spacing: -0.01em;
   line-height: 1.4;
 }
-
 .subtitle {
   color: var(--text-sub);
   font-size: 0.95rem;
   margin-top: 6px;
 }
-
-/* --- 📍 섹션 헤더 및 버튼 배치 --- */
 .sectionHeader {
   display: flex;
   justify-content: space-between;
@@ -47,7 +114,6 @@
   gap: 16px;
   width: 100%;
 }
-
 .titleWithIcon {
   display: flex;
   align-items: center;
@@ -55,14 +121,12 @@
   flex: 1;
   min-width: 0;
 }
-
 .titleWithIcon h2 {
   font-size: 1.1rem;
   font-weight: 700;
   margin: 0;
   white-space: nowrap;
 }
-
 .headerMoreButton {
   display: flex;
   align-items: center;
@@ -76,58 +140,23 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  flex-shrink: 0;
 }
-
 .headerMoreButton:hover {
   background: var(--bg-card);
   border-color: var(--accent-color);
   color: var(--accent-color) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transform: translateY(-1px);
 }
-
 .highlightText {
   color: var(--accent-color);
   font-family: "JetBrains Mono", monospace;
   margin-left: 4px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
-
 .inlineFilterGroup {
   display: flex;
   align-items: center;
   gap: 12px;
-  flex-shrink: 0;
 }
-
-.miniSelectWrapper {
-  display: flex;
-  align-items: center;
-  background: var(--bg-item);
-  border: 1px solid var(--border-color);
-  padding: 2px 4px;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.yearSelect {
-  border: none;
-  background: transparent;
-  color: var(--text-main) !important;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  outline: none;
-  padding: 6px 28px 6px 10px;
-  appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 8px center;
-}
-
 .itemBadge {
   font-size: 0.75rem;
   padding: 5px 12px;
@@ -136,59 +165,50 @@
   border-radius: 20px;
   font-weight: 600;
 }
-
-/* --- 📍 차트 래퍼 수정 (에러 해결 핵심) --- */
 .chartWrapper {
   width: 100%;
-  height: 350px; /* 높이 고정 */
-  min-height: 350px; /* 최소 높이 보장 */
+  height: 350px;
+  min-height: 350px;
   position: relative;
-  overflow: hidden;
 }
-
 .miniChartWrapper {
   margin-top: 10px;
   width: 100%;
-  height: 200px; /* 기존 180px에서 살짝 여유 있게 조정 */
-  min-height: 200px; /* 최소 높이 보장 */
+  height: 200px;
+  min-height: 200px;
   position: relative;
 }
-
-/* --- 📍 하단 그리드 레이아웃 --- */
 .bottomGrid {
   display: flex;
   flex-wrap: wrap;
   gap: 24px;
-  align-items: flex-start;
+  margin-top: 24px;
 }
-
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 20px;
   padding: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
-  display: flex;
-  flex-direction: column;
 }
-
 .mainGraphCard {
   width: 100%;
 }
-
 .inventoryCard {
   flex: 1 1 350px;
   min-height: 500px;
 }
-
+.combinedSalesSection {
+  flex: 2 1 600px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
 .inventoryListArea {
-  width: 100%;
-  flex: 1;
   max-height: 400px;
   overflow-y: auto;
   scrollbar-width: none;
 }
-
 .inventoryItem {
   display: flex;
   justify-content: space-between;
@@ -200,64 +220,37 @@
   border: 1px solid var(--border-color);
   transition: transform 0.2s ease;
 }
-
 .inventoryItem:hover {
   transform: translateX(4px);
-  border-color: var(--accent-color);
+  border-color: #ff4757;
 }
-
 .itemInfo {
   display: flex;
   flex-direction: column;
-  min-width: 0;
-  flex: 1;
 }
-
 .partId {
   font-family: "JetBrains Mono", monospace;
   font-size: 0.75rem;
   color: var(--accent-color);
   font-weight: 600;
 }
-
 .productName {
   font-size: 0.85rem;
   color: var(--text-main);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
 }
-
 .stockCount {
   font-family: "JetBrains Mono", monospace;
   font-size: 1.1rem;
   font-weight: 800;
   color: #ff4757;
 }
-
-/* --- 📍 우측 분석 영역 --- */
-.combinedSalesSection {
-  flex: 2 1 600px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  transition: all 0.3s ease;
-}
-
-.combinedSalesSection.updating {
-  opacity: 0.5;
-  pointer-events: none;
-}
-
 .tableWrapper {
   overflow-x: auto;
 }
-
 .table {
   width: 100%;
   border-collapse: collapse;
 }
-
 .table th {
   text-align: left;
   padding: 12px;
@@ -265,17 +258,14 @@
   color: var(--text-sub);
   border-bottom: 2px solid var(--border-color);
 }
-
 .table td {
   padding: 16px 12px;
   border-bottom: 1px solid var(--border-color);
   font-size: 0.9rem;
 }
-
 .clickableRow {
   cursor: pointer;
 }
-
 .selectedRow {
   background: color-mix(
     in srgb,
@@ -283,7 +273,21 @@
     transparent 92%
   ) !important;
 }
-
+.blueText {
+  color: #3b82f6 !important;
+}
+.redText {
+  color: #ef4444 !important;
+}
+.accentText {
+  color: var(--accent-color) !important;
+}
+.textRight {
+  text-align: right;
+}
+.bold {
+  font-weight: 700;
+}
 .toggleGroup {
   display: flex;
   background: var(--bg-item);
@@ -291,7 +295,6 @@
   border-radius: 10px;
   border: 1px solid var(--border-color);
 }
-
 .toggleBtn {
   border: none;
   background: transparent;
@@ -302,23 +305,13 @@
   cursor: pointer;
   border-radius: 7px;
 }
-
 .toggleBtn.active {
   background: var(--bg-card);
   color: var(--accent-color);
 }
-
-.textRight {
-  text-align: right;
-}
-.bold {
-  font-weight: 700;
-}
-.blueText {
-  color: var(--accent-color) !important;
-}
-.redText {
-  color: #ff4757 !important;
+.updating {
+  opacity: 0.5;
+  pointer-events: none;
 }
 
 @keyframes fadeIn {

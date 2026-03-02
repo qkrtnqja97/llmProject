@@ -1,4 +1,10 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+} from "react";
 import * as Icon from "lucide-react";
 import * as Re from "recharts";
 
@@ -9,7 +15,6 @@ import {
 } from "@services/dashboardService";
 import styles from "./DashboardPage.module.css";
 
-// --- 📍 툴팁 관련 상수 및 스타일 정의 ---
 const TOOLTIP_LABELS: Record<string, string> = {
   sales: "매출액",
   purchase: "매입액",
@@ -47,7 +52,24 @@ const Dashboard: React.FC = () => {
   const [salesMode, setSalesMode] = useState<"top" | "bot">("top");
   const [selectedItem, setSelectedItem] = useState<SalesItem | null>(null);
 
-  // --- 📍 데이터 페칭 로직 ---
+  // 📍 커스텀 드롭다운 상태 및 외부 클릭 감지용 Ref
+  const [isYearOpen, setIsYearOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // 외부 클릭 시 드롭다운 닫기 로직
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
+        setIsYearOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const fetchDashboardData = useCallback(
     async (isFirst: boolean = false) => {
       try {
@@ -64,7 +86,6 @@ const Dashboard: React.FC = () => {
 
         const targetList =
           salesMode === "top" ? summary.topSales : summary.botSales;
-
         if (targetList && targetList.length > 0) {
           const stillExists = targetList.find(
             (item) => item.id === selectedItem?.id,
@@ -84,7 +105,6 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     fetchDashboardData(true);
   }, []);
-
   useEffect(() => {
     if (!isInitialLoading) fetchDashboardData(false);
   }, [selectedYear, salesMode]);
@@ -122,7 +142,6 @@ const Dashboard: React.FC = () => {
         </div>
       </header>
 
-      {/* 1. 상단: 전체 기간 실적 (메인 차트) */}
       <div className={styles.topFullSection}>
         <section className={`${styles.card} ${styles.mainGraphCard}`}>
           <div className={styles.sectionHeader}>
@@ -184,7 +203,6 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className={styles.bottomGrid}>
-        {/* 2. 좌측: 긴급 재고 */}
         <section className={`${styles.card} ${styles.inventoryCard}`}>
           <div className={styles.sectionHeader}>
             <div className={styles.titleWithIcon}>
@@ -196,7 +214,6 @@ const Dashboard: React.FC = () => {
                 </span>
               </h2>
             </div>
-            {/* 📍 '더보기' 버튼을 상단 우측 헤더로 이동 */}
             {lowStockItems.length > 3 && (
               <button
                 className={styles.headerMoreButton}
@@ -229,11 +246,8 @@ const Dashboard: React.FC = () => {
           </div>
         </section>
 
-        {/* 3. 우측: 품목 상세 분석 및 리스트 */}
         <div
-          className={`${styles.combinedSalesSection} ${
-            isItemUpdating ? styles.updating : ""
-          }`}
+          className={`${styles.combinedSalesSection} ${isItemUpdating ? styles.updating : ""}`}
         >
           <section className={`${styles.card} ${styles.itemDetailChartCard}`}>
             <div className={styles.sectionHeader}>
@@ -247,17 +261,38 @@ const Dashboard: React.FC = () => {
                 </h2>
               </div>
               <div className={styles.inlineFilterGroup}>
-                <div className={styles.miniSelectWrapper}>
-                  <select
-                    className={styles.yearSelect}
-                    value={selectedYear}
-                    onChange={(e) => setSelectedYear(Number(e.target.value))}
+                {/* 📍 커스텀 드롭다운 섹션 */}
+                <div className={styles.customSelectContainer} ref={dropdownRef}>
+                  <div
+                    className={styles.customSelectTrigger}
+                    onClick={() => setIsYearOpen(!isYearOpen)}
                   >
-                    <option value={2025}>2025년</option>
-                    <option value={2024}>2024년</option>
-                    <option value={2023}>2023년</option>
-                  </select>
+                    <span>{selectedYear}년</span>
+                    <Icon.ChevronDown
+                      size={14}
+                      className={isYearOpen ? styles.rotate : ""}
+                    />
+                  </div>
+                  {isYearOpen && (
+                    <ul className={styles.customOptions}>
+                      {[2025, 2024, 2023].map((year) => (
+                        <li
+                          key={year}
+                          className={
+                            selectedYear === year ? styles.activeOption : ""
+                          }
+                          onClick={() => {
+                            setSelectedYear(year);
+                            setIsYearOpen(false);
+                          }}
+                        >
+                          {year}년
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
+
                 {isItemUpdating ? (
                   <Icon.Loader2 size={14} className={styles.miniSpinner} />
                 ) : (
@@ -342,17 +377,13 @@ const Dashboard: React.FC = () => {
               </div>
               <div className={styles.toggleGroup}>
                 <button
-                  className={`${styles.toggleBtn} ${
-                    salesMode === "top" ? styles.active : ""
-                  }`}
+                  className={`${styles.toggleBtn} ${salesMode === "top" ? styles.active : ""}`}
                   onClick={() => setSalesMode("top")}
                 >
                   상위
                 </button>
                 <button
-                  className={`${styles.toggleBtn} ${
-                    salesMode === "bot" ? styles.active : ""
-                  }`}
+                  className={`${styles.toggleBtn} ${salesMode === "bot" ? styles.active : ""}`}
                   onClick={() => setSalesMode("bot")}
                 >
                   하위
@@ -372,9 +403,7 @@ const Dashboard: React.FC = () => {
                   {currentSalesData.map((item: SalesItem) => (
                     <tr
                       key={`${selectedYear}-${item.id}`}
-                      className={`${styles.clickableRow} ${
-                        selectedItem?.id === item.id ? styles.selectedRow : ""
-                      }`}
+                      className={`${styles.clickableRow} ${selectedItem?.id === item.id ? styles.selectedRow : ""}`}
                       onClick={() => setSelectedItem(item)}
                     >
                       <td className={styles.bold}>{item.id}</td>
@@ -382,11 +411,9 @@ const Dashboard: React.FC = () => {
                         ₩{item.sales.toLocaleString()}
                       </td>
                       <td
-                        className={`${styles.textRight} ${
-                          item.amount < 0 ? styles.redText : styles.blueText
-                        } ${styles.bold}`}
+                        className={`${styles.textRight} ${styles.bold} ${item.amount >= 0 ? styles.blueText : styles.redText}`}
                       >
-                        {item.amount < 0 ? "▼" : "▲"} ₩
+                        {item.amount >= 0 ? "▲" : "▼"} ₩{" "}
                         {Math.abs(item.amount).toLocaleString()}
                       </td>
                     </tr>

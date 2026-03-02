@@ -266,7 +266,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       menuMap.set(m.id, {
         ...m,
         children: [],
-        icon: m.icon || "Grid",
+        icon: m.iconName || "Grid",
         path: m.path || (m.id.startsWith("/") ? m.id : `/${m.id}`),
       });
     });

@@ -1,7 +1,10 @@
 import json
+import logging
 from typing import List, Dict, Any
 from app.repositories.user_repository import UserRepository
 from app.schemas.user import UserSettingsSchema
+
+logger = logging.getLogger(__name__)
 
 class UserService:
     def __init__(self, user_repo: UserRepository):
@@ -9,7 +12,7 @@ class UserService:
 
     def _get_default_menus(self, role: str, team: str) -> List[Dict[str, Any]]:
         """
-        프론트엔드 Sidebar.tsx의 baseMenus 로직을 백엔드로 완벽 이식
+        시스템 권한 및 팀별 표준 메뉴 구성 (아이콘 및 경로의 기준점)
         """
         # 1. 공통 기본 메뉴
         menus = [
@@ -22,7 +25,7 @@ class UserService:
             {"id": "work-memo", "label": "회의록", "path": "/work/memo", "isVisible": True, "iconName": "StickyNote", "parentId": "group-work"},
         ]
 
-        # 2. 인사/행정 (admin 또는 hr 팀)
+        # 2. 인사/행정
         if role == "admin" or team == "hr":
             menus.extend([
                 {"id": "group-hr", "label": "인사/행정", "isVisible": True, "iconName": "Users2", "parentId": None, "isGroup": True},
@@ -30,7 +33,7 @@ class UserService:
                 {"id": "hr-att", "label": "근태 기록", "path": "/hr/attendance", "isVisible": True, "iconName": "CalendarCheck", "parentId": "group-hr"},
             ])
 
-        # 3. 회계/재무 (admin 또는 finance 팀)
+        # 3. 회계/재무
         if role == "admin" or team == "finance":
             menus.extend([
                 {"id": "group-finance", "label": "회계/재무", "isVisible": True, "iconName": "Landmark", "parentId": None, "isGroup": True},
@@ -38,7 +41,7 @@ class UserService:
                 {"id": "finance-settlement", "label": "결산 보고", "path": "/finance/settlement", "isVisible": True, "iconName": "BarChart3", "parentId": "group-finance"},
             ])
 
-        # 4. 영업/판매 (admin 또는 sales 팀)
+        # 4. 영업/판매
         if role == "admin" or team == "sales":
             menus.extend([
                 {"id": "group-sales", "label": "영업/판매", "isVisible": True, "iconName": "BadgeDollarSign", "parentId": None, "isGroup": True},
@@ -46,10 +49,10 @@ class UserService:
                 {"id": "sales-order", "label": "수주 관리", "path": "/sales/order-so", "isVisible": True, "iconName": "FileSpreadsheet", "parentId": "group-sales"},
             ])
 
-        # 5. 운영 관리/ERP (admin 또는 purchase, logistics, product 팀)
+        # 5. 운영 관리 (ERP)
         if role == "admin" or team in ["purchase", "logistics", "product"]:
             menus.extend([
-                {"id": "group-manage", "label": "운영 관리", "isVisible": True, "iconName": "Settings2", "parentId": None, "isGroup": True},
+                {"id": "group-manage", "label": "ERP/재고", "isVisible": True, "iconName": "Box", "parentId": None, "isGroup": True},
                 {"id": "manage-inventory", "label": "재고 관리", "path": "/manage/inventory", "isVisible": True, "iconName": "Box", "parentId": "group-manage"},
                 {"id": "manage-order", "label": "발주 관리", "path": "/manage/order", "isVisible": True, "iconName": "ShoppingCart", "parentId": "group-manage"},
                 {"id": "manage-product", "label": "제품 관리", "path": "/manage/product", "isVisible": True, "iconName": "Package", "parentId": "group-manage"},
@@ -57,14 +60,17 @@ class UserService:
 
         # 6. 하단 공통 메뉴
         menus.extend([
-            {"id": "contact", "label": "연락처", "path": "/contact", "isVisible": True, "iconName": "Contact2", "parentId": None},
+            {"id": "contact", "label": "연락처", "path": "/contact", "isVisible": True, "iconName": "Users", "parentId": None},
             {"id": "resources", "label": "자료실", "path": "/resources", "isVisible": True, "iconName": "FolderOpen", "parentId": None},
             {"id": "history", "label": "검색 기록", "path": "/history", "isVisible": True, "iconName": "History", "parentId": None}
         ])
         
         return menus
 
-    async def get_settings(self, emp_id: str):
+    async def get_settings(self, emp_id: str) -> Dict[str, Any]:
+        """
+        설정을 로드하고, DB 데이터와 시스템 표준(아이콘/경로)을 병합하여 반환합니다.
+        """
         user = await self.user_repo.get_user_by_emp_id(emp_id)
         settings = await self.user_repo.get_user_settings(emp_id)
         
@@ -76,48 +82,79 @@ class UserService:
 
         if not settings:
             return {
-                "emp_id": emp_id, "name": user_name, "theme": "dark",
+                "emp_id": emp_id, "name": user_name, "theme": "navy",
                 "startPage": "/ai-search", "sidebarMenus": default_menus,
                 "role": user_role, "team": user_team
             }
         
         settings_dict = dict(settings)
-        sidebar_data = settings_dict.get("menu_config") or settings_dict.get("sidebarMenus")
+        raw_data = settings_dict.get("menu_config") or settings_dict.get("sidebarMenus")
         
         saved_menus = []
-        if isinstance(sidebar_data, str):
-            try: saved_menus = json.loads(sidebar_data)
+        if isinstance(raw_data, str):
+            try: saved_menus = json.loads(raw_data)
             except: saved_menus = default_menus
-        elif isinstance(sidebar_data, list):
-            saved_menus = sidebar_data
+        elif isinstance(raw_data, list):
+            saved_menus = raw_data
         else:
             saved_menus = default_menus
 
-        # 📍 병합: 프론트에서 추가한 신규 그룹/메뉴가 DB에 없으면 자동으로 추가
-        saved_ids = {m['id'] for m in saved_menus}
+        # 📍 [핵심: 아이콘 복구 및 병합 로직]
+        # DB에 저장된 'isVisible' 설정은 유지하되, 'iconName', 'path' 등은 백엔드 정의값을 강제로 씌움
+        final_menus = []
+        saved_map = {m['id']: m for m in saved_menus}
+
         for d_menu in default_menus:
-            if d_menu['id'] not in saved_ids:
-                saved_menus.append(d_menu)
+            m_id = d_menu['id']
+            if m_id in saved_map:
+                s_menu = saved_map[m_id]
+                # 병합: 사용자 설정(isVisible) + 시스템 표준(아이콘/경로)
+                merged_item = {
+                    **d_menu,  # 시스템 표준 데이터(아이콘 포함)를 베이스로 함
+                    "isVisible": s_menu.get("isVisible", True), # 노출 여부만 유저 설정값 반영
+                    "label": s_menu.get("label") or d_menu["label"]
+                }
+                final_menus.append(merged_item)
+            else:
+                # DB에 없는 신규 메뉴 추가
+                final_menus.append(d_menu)
 
         return {
             "emp_id": emp_id,
             "name": user_name,
-            "theme": settings_dict.get("theme", "dark"),
+            "theme": settings_dict.get("theme", "navy"),
             "startPage": settings_dict.get("start_page") or "/ai-search",
-            "sidebarMenus": saved_menus,
+            "sidebarMenus": final_menus,
             "role": user_role,
             "team": user_team
         }
 
     async def save_settings(self, emp_id: str, payload: UserSettingsSchema):
+        """
+        사용자 설정을 안전하게 DB에 저장합니다.
+        """
         processed_menus = []
-        for item in payload.sidebarMenus:
-            m_dict = item.model_dump() if hasattr(item, 'model_dump') else item.dict()
-            # 프론트와 DB 필드명(iconName) 동기화
-            if not m_dict.get('iconName'):
-                m_dict['iconName'] = m_dict.get('icon', 'Grid')
-            m_dict['icon'] = m_dict['iconName']
-            processed_menus.append(m_dict)
+        source_menus = payload.sidebarMenus if isinstance(payload.sidebarMenus, list) else []
+
+        for item in source_menus:
+            # Pydantic 모델 변환 처리
+            if hasattr(item, 'model_dump'): m_dict = item.model_dump()
+            elif hasattr(item, 'dict'): m_dict = item.dict()
+            else: m_dict = dict(item)
+            
+            # 아이콘 유실 방지: iconName이 없으면 icon 필드라도 참조
+            icon_to_save = m_dict.get('iconName') or m_dict.get('icon') or 'Grid'
+            
+            # 필요한 필드만 정제하여 저장 (DB 용량 및 구조 최적화)
+            processed_menus.append({
+                "id": m_dict.get('id'),
+                "label": m_dict.get('label'),
+                "path": m_dict.get('path'),
+                "isVisible": m_dict.get('isVisible', True),
+                "iconName": icon_to_save,
+                "parentId": m_dict.get('parentId'),
+                "isGroup": m_dict.get('isGroup', False)
+            })
 
         await self.user_repo.upsert_user_settings(
             emp_id=emp_id, 
