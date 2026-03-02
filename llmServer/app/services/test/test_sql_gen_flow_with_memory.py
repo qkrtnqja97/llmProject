@@ -48,7 +48,7 @@ async def run_memory_pipeline():
     user_id = "memory_test_user"
 
     # 테스트 질문
-    question = "23년은?"
+    question = "2024년 총 매출액 얼마야?"
 
     print("입력 질문:", question)
 
