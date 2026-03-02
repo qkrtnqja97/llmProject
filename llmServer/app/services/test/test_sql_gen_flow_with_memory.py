@@ -1,3 +1,4 @@
+# llmServer/app/services/test/test_sql_gen_flow_with_memory.py
 # PYTHONPATH=. python -m app.services.test.test_sql_gen_flow_with_memory
 
 import asyncio
@@ -31,7 +32,7 @@ def inject_memory_to_question(question: str, memory: dict) -> str:
 
 async def run_memory_pipeline():
 
-    print("\n🚀 Pipeline 테스트 (Memory 포함)\n")
+    print("\n🚀 Pipeline 테스트 (Memory + SQLGen 전체)\n")
 
     tunnel = CloudflareTunnel(
         hostname=settings.CLOUDFLARE_HOSTNAME,
@@ -43,12 +44,11 @@ async def run_memory_pipeline():
     container = await get_container()
 
     memory_service = container.memory_service
-    llm_service = container.llm_service
     router_service = container.router_service
+    sql_generate_service = container.sql_generate_service
 
     user_id = "memory_test_user"
 
-    # 테스트 질문
     question = "2024년 총 매출액 얼마야?"
 
     print("입력 질문:", question)
@@ -62,19 +62,27 @@ async def run_memory_pipeline():
     # 2️⃣ structured memory 적용
     final_q = inject_memory_to_question(rebuilt_q, structured_memory)
 
-    # 3️⃣ router
+    # 3️⃣ Router
     routed = await router_service.route(final_q)
 
-    # 4️⃣ SQL 생성
-    sql_result = await llm_service.generate_sql(final_q)
+    # 4️⃣ state 구성 (🔥 핵심)
+    state = {
+        "refined_question": final_q,
+        "intent": routed,
+        "error_history": [],
+        "synonym_hint": "",
+    }
 
-    print("Memory 재조립:", rebuilt_q)
+    # 5️⃣ SQL 생성
+    sql_result = await sql_generate_service.generate(state)
+
+    print("\nMemory 재조립:", rebuilt_q)
     print("Memory 적용 후:", final_q)
     print("Router 결과:", routed)
-    print("SQL 생성 결과:")
+    print("\n📌 SQL 생성 결과:")
     print(sql_result)
 
-    print("\n🎉 Memory 포함 파이프라인 테스트 완료\n")
+    print("\n🎉 Memory + SQLGen 파이프라인 테스트 완료\n")
 
 
 if __name__ == "__main__":
