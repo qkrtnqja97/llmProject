@@ -4,12 +4,13 @@ from app.core.config.vector import ChromaSettings
 from app.core.config.cloudflare import CloudflareSettings
 from app.core.config.rerank import Rerank_Settings
 
+
 class Settings(
     PostgresSettings,
     LLM_EMBEDDING_Settings,
     ChromaSettings,
     CloudflareSettings,
-    Rerank_Settings
+    Rerank_Settings,
 ):
     pass
 

@@ -3,6 +3,7 @@
 from app.prompts.registry import PromptRegistry
 from app.providers.registry import ProviderRegistry
 from app.infra.vector.vector_repository import VectorRepository
+from app.infra.database.rdb_repository import RDBRepository
 from app.infra.database.conversation_repository import ConversationRepository
 
 from app.services.entity_service import EntityResolverService
@@ -17,6 +18,7 @@ from app.services.retrieval.bm25 import BM25Index
 from app.services.retrieval.fewshot_manager import FewshotManager
 from app.services.sql_generate_service import SQLGenerateService
 from app.services.retry_strategy_service import RetryStrategyService
+from app.services.execute_db_service import ExecuteDBService
 
 from app.core.config import settings
 from app.core.metadata_bundle import MetadataBundle
@@ -30,6 +32,7 @@ class ServiceContainer:
         prompt_registry: PromptRegistry,
         provider_registry: ProviderRegistry,
         vector_repository: VectorRepository,
+        rdb_repository: RDBRepository,
         conversation_repository: ConversationRepository,
         metadata_bundle: MetadataBundle,
     ):
@@ -71,6 +74,13 @@ class ServiceContainer:
             retry_service=self.retry_strategy_service,
             rag_service=self.rag_service,
             metadata_bundle=metadata_bundle,
+        )
+
+        self.execute_db_service = ExecuteDBService(
+            rdb_repository=rdb_repository,
+            column_map=metadata_bundle.column_map,
+            valid_joins=metadata_bundle.valid_joins,
+            db_schema=settings.POSTGRES_SCHEMA,
         )
 
         # ─────────────────────────────

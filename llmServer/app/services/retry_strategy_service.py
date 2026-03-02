@@ -23,7 +23,8 @@ class RetryStrategyService:
                 return {"strategy": "unknown", "hint": error_msg[:300]}
 
             found_in = [
-                t for t, cols in self.column_map.items()
+                t
+                for t, cols in self.column_map.items()
                 if missing.lower() in [c.lower() for c in cols]
             ]
 
@@ -38,7 +39,7 @@ class RetryStrategyService:
             missing = tbl_match.group(1) if tbl_match else "unknown"
             return {
                 "strategy": "table_missing",
-                "hint": f"테이블 '{missing}' 없음. 유효 테이블: {list(self.column_map.keys())}"
+                "hint": f"테이블 '{missing}' 없음. 유효 테이블: {list(self.column_map.keys())}",
             }
 
         if "syntax error" in err_lower:
@@ -48,19 +49,19 @@ class RetryStrategyService:
                     "SQL 단순화: TO_DATE/DATE_TRUNC 중첩 금지. "
                     "EXTRACT(YEAR FROM col)=연도 사용. "
                     "복잡한 서브쿼리는 CTE(WITH절)로 분리."
-                )
+                ),
             }
 
         if "timeout" in err_lower or "canceling" in err_lower:
             return {
                 "strategy": "timeout",
-                "hint": "타임아웃: LIMIT 10으로 축소, WHERE에 날짜 범위 추가, CTE로 분리."
+                "hint": "타임아웃: LIMIT 10으로 축소, WHERE에 날짜 범위 추가, CTE로 분리.",
             }
 
         if "group by" in err_lower or "aggregate" in err_lower:
             return {
                 "strategy": "logic",
-                "hint": "GROUP BY 오류: SELECT의 모든 비집계 컬럼을 GROUP BY에 포함하세요."
+                "hint": "GROUP BY 오류: SELECT의 모든 비집계 컬럼을 GROUP BY에 포함하세요.",
             }
 
         return {"strategy": "unknown", "hint": error_msg[:300]}

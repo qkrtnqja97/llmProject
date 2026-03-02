@@ -16,9 +16,11 @@ from app.infra.vector.vector_repository import VectorRepository
 from app.infra.database.conversation_repository import ConversationRepository
 
 from app.prompts.schema_context_builder import SchemaContextBuilder
+from app.prompts.valid_joins import VALID_JOINS
 
 from app.core.config import settings
 from app.core.metadata_bundle import MetadataBundle
+
 
 # -----------------------------
 # Provider Registry
@@ -32,7 +34,7 @@ def create_provider_registry() -> ProviderRegistry:
         provider=GeminiLLMProvider(
             api_key=settings.GEMINI_API_KEY,
             model_name=settings.LLM_MODEL,
-        )
+        ),
     )
 
     registry.register_embedding(
@@ -40,7 +42,7 @@ def create_provider_registry() -> ProviderRegistry:
         provider=GeminiEmbeddingProvider(
             api_key=settings.GEMINI_API_KEY,
             model_name=settings.EMBEDDING_MODEL,
-        )
+        ),
     )
 
     registry.register_reranker(
@@ -48,7 +50,7 @@ def create_provider_registry() -> ProviderRegistry:
         provider=CohereRerankerProvider(
             api_key=settings.COHERE_API_KEY,
             model_name=settings.COHERE_MODEL,
-        )
+        ),
     )
 
     return registry
@@ -67,9 +69,7 @@ async def create_rdb_repository() -> RDBRepository:
 # Vector Repository
 # -----------------------------
 def create_vector_repository(embedding_provider) -> VectorRepository:
-    chroma_client = ChromaVectorClient(
-        embedding_provider=embedding_provider
-    )
+    chroma_client = ChromaVectorClient(embedding_provider=embedding_provider)
     return VectorRepository(vector_client=chroma_client)
 
 
@@ -88,39 +88,37 @@ async def create_metadata_bundle(rdb_repository) -> dict:
         column_map=raw_meta["column_map"],
         data_stats=raw_meta["data_stats"],
         schema_context=schema_context,
-    ) 
+        valid_joins=VALID_JOINS,
+    )
     return metadata_bundle
-  
 
 
 # -----------------------------
 # 최종 Container
 # -----------------------------
 
+
 async def get_container() -> ServiceContainer:
 
-    prompt_registry =  PromptRegistry()
+    prompt_registry = PromptRegistry()
     provider_registry = create_provider_registry()
 
-    embedding_provider = provider_registry.get_embedding(
-        settings.EMBEDDING_MODEL
-    )
+    embedding_provider = provider_registry.get_embedding(settings.EMBEDDING_MODEL)
 
     rdb_repository = await create_rdb_repository()
     conversation_repository = ConversationRepository(rdb_repository=rdb_repository)
 
-    vector_repository = create_vector_repository(
-        embedding_provider=embedding_provider
-    )
+    vector_repository = create_vector_repository(embedding_provider=embedding_provider)
 
     metadata_bundle = await create_metadata_bundle(rdb_repository)
-    
+
     container = ServiceContainer(
-    prompt_registry=prompt_registry,
-    provider_registry=provider_registry,
-    vector_repository=vector_repository,
-    conversation_repository=conversation_repository,
-    metadata_bundle=metadata_bundle,
+        prompt_registry=prompt_registry,
+        provider_registry=provider_registry,
+        vector_repository=vector_repository,
+        rdb_repository=rdb_repository,
+        conversation_repository=conversation_repository,
+        metadata_bundle=metadata_bundle,
     )
 
     # 🔥 BM25 초기 구축

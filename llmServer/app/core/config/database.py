@@ -2,6 +2,7 @@
 
 from app.core.config.base import BaseAppSettings
 
+
 class PostgresSettings(BaseAppSettings):
     POSTGRES_HOST: str
     POSTGRES_PORT: int
@@ -20,4 +21,3 @@ class PostgresSettings(BaseAppSettings):
             f"{self.POSTGRES_PORT}/"
             f"{self.POSTGRES_DB}"
         )
-

@@ -489,7 +489,7 @@ def validate_sql_static(sql: str) -> tuple[bool, str, str]:
                     errors.append(f"잘못된 JOIN: '{t1}'과 '{t2}'는 '{expected_key}' 컬럼으로 연결해야 합니다.")
                     strategy = "logic"
 
-    if errors:
+    if errrors:
         return False, " | ".join(errors), strategy
     return True, "", "none"
 
@@ -1564,7 +1564,7 @@ def execute_db_node(state: AgentState):
     is_valid, reason = validate_sql(sql)
     if not is_valid:
         logger.warning(f"SQL 검증 실패: {reason} | SQL: {sql}")
-        return {
+        return { 
             "db_result": f"Error: 보안 정책 위반 - {reason}",
             "error_history": state.get("error_history", []) + [reason],
             "retry_count": state.get("retry_count", 0) + 1

@@ -1,4 +1,4 @@
-BASE_SQL_GENERATION_SYSTEM_PROMPT="""
+BASE_SQL_GENERATION_SYSTEM_PROMPT = """
 당신은 PostgreSQL 전문가입니다. 아래 규칙을 반드시 지켜 SQL만 출력하세요.
 
 [필수 규칙]
@@ -107,11 +107,5 @@ BASE_SQL_GENERATION_SYSTEM_PROMPT="""
 - purchase_orders.purchase_date → DATE, 필터 가능
 - initial_inventory.stock_date → DATE, 필터 가능
 - current_products.last_updated → DATE, 필터 금지 (항상 전체 조회)
-
-[스키마]{schema}
-[매출/매입 데이터 기간] {min_d} ~ {max_d}
-[에러기록] {errors}
-{ctx_section}{rag}
-[질문] {q}
 
 SQL:"""

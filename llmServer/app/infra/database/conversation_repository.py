@@ -6,6 +6,7 @@ from app.infra.database.rdb_repository import RDBRepository
 from app.core.config import settings
 import json
 
+
 class ConversationRepository:
 
     def __init__(self, rdb_repository: RDBRepository):
@@ -16,15 +17,15 @@ class ConversationRepository:
     # 저장
     # -------------------------------
     async def save(
-    self,
-    user_id: str,
-    session_id: str,
-    question: str,
-    refined_question: str,
-    response_data: Dict,
-    final_sql: Optional[str],
-    entity_corrections: Dict,
-    execution_time_ms: int,
+        self,
+        user_id: str,
+        session_id: str,
+        question: str,
+        refined_question: str,
+        response_data: Dict,
+        final_sql: Optional[str],
+        entity_corrections: Dict,
+        execution_time_ms: int,
     ):
 
         query = f"""
