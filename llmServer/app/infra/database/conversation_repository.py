@@ -3,13 +3,14 @@
 from typing import List, Dict, Optional
 from datetime import datetime
 from app.infra.database.rdb_repository import RDBRepository
+from app.core.config import settings
 import json
 
 class ConversationRepository:
 
-    def __init__(self, rdb_repository: RDBRepository, schema: str = "sql_assistant"):
+    def __init__(self, rdb_repository: RDBRepository):
         self.rdb_repository = rdb_repository
-        self.schema = schema
+        self.schema = settings.CONVERSATION_SCHEMA
 
     # -------------------------------
     # 저장

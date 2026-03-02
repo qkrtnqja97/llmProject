@@ -25,6 +25,28 @@ def show_tables(engine):
         print(" -", name)
 
     return table_names
+  
+def show_all_schemas(engine):
+    print("\n🌐 [전체 스키마 목록 조회]")
+    
+    # 시스템 스키마(pg_로 시작하는 것들)를 제외하고 출력하는 쿼리
+    query = """
+        SELECT schema_name 
+        FROM information_schema.schemata
+        WHERE schema_name NOT LIKE 'pg_%' 
+          AND schema_name != 'information_schema'
+        ORDER BY schema_name;
+    """
+
+    with engine.connect() as conn:
+        result = conn.execute(text(query)).fetchall()
+    
+    schemas = [r[0] for r in result]
+    
+    for s in schemas:
+        print(f" 📂 {s}")
+    
+    return schemas
 
 
 def preview_table(engine, table_name, limit=3):
@@ -60,6 +82,7 @@ if __name__ == "__main__":
 
     try:
         tables = show_tables(engine)
+        schemas = show_all_schemas(engine)
 
         for table in tables:
             preview_table(engine, table, limit=3)

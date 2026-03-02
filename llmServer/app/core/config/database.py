@@ -9,6 +9,7 @@ class PostgresSettings(BaseAppSettings):
     POSTGRES_PASSWORD: str
     POSTGRES_DB: str
     POSTGRES_SCHEMA: str
+    CONVERSATION_SCHEMA: str
 
     @property
     def POSTGRES_DSN(self) -> str:

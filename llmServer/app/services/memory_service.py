@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 
 class MemoryService:
 
-    def __init__(self, conversation_repository):
+    def __init__(self, conversation_repository:ConversationRepository):
         self.conversation_repository = conversation_repository
 
     # --------------------------------------------------
@@ -20,7 +20,7 @@ class MemoryService:
             user_id=user_id,
             limit=limit,
         )
-        return list(reversed(rows))  # 시간순 정렬
+        return list(reversed(rows))  # 오래된 → 최신
 
     # --------------------------------------------------
     # 통합 메모리 처리
@@ -29,10 +29,8 @@ class MemoryService:
 
         recent = await self.load_recent(user_id)
 
-        # 1️⃣ follow-up 재조립
         rebuilt_q = self._rebuild_followup(question, recent)
 
-        # 2️⃣ structured memory 추출
         structured_memory = self._extract_structured_memory(recent)
 
         return rebuilt_q, structured_memory
@@ -47,6 +45,7 @@ class MemoryService:
 
         q = question.strip()
 
+        # 짧은 질문만 follow-up 처리
         if len(q.replace(" ", "")) > 12:
             return q
 
@@ -54,14 +53,16 @@ class MemoryService:
         if not base_q:
             return q
 
-        # 🔥 연도 치환
+        # 🔥 연도 치환 (4자리 유지)
         year_match = re.search(r'(\d{2,4})년', q)
         if year_match:
             new_year = year_match.group(1)
+
             if len(new_year) == 2:
                 new_year = f"20{new_year}"
 
-            rebuilt = re.sub(r'\d{2,4}년', f"{new_year[-2:]}년", base_q)
+            rebuilt = re.sub(r'\d{2,4}년', f"{new_year}년", base_q)
+
             logger.info(f"[연도치환] {q} → {rebuilt}")
             return rebuilt
 
@@ -81,23 +82,23 @@ class MemoryService:
         return q
 
     # --------------------------------------------------
-    # 기준 질문 찾기 (핵심 수정)
+    # 기준 질문 선택 로직 (핵심)
     # --------------------------------------------------
     def _find_base_question(self, recent: List[Dict], question: str):
 
-        # 연도 질문
+        # 연도 질문이면 연도 포함된 이전 질문 찾기
         if re.search(r'\d{2,4}년', question):
             for m in reversed(recent):
                 if re.search(r'\d{2,4}년', m["question"]):
                     return m["question"]
 
-        # 분기 질문
+        # 분기 질문이면 분기 포함된 질문 찾기
         if re.search(r'[1-4]분기', question):
             for m in reversed(recent):
                 if "분기" in m["question"]:
                     return m["question"]
 
-        # fallback: 가장 최근 질문
+        # fallback
         return recent[-1]["question"] if recent else ""
       
     # -----------------------------------
@@ -135,15 +136,16 @@ class MemoryService:
         for m in reversed(recent):
 
             text_blob = ""
+
             if m.get("response_data"):
                 text_blob = str(m["response_data"])
 
-            # 🔥 제품코드 추출
+            # 🔥 제품 코드 추출
             pn_matches = re.findall(r'\b[A-Z0-9][A-Z0-9\-#\.+]{4,}\b', text_blob)
             if pn_matches and "last_product" not in memory:
                 memory["last_product"] = pn_matches[-1]
 
-            # 🔥 연도 범위 추출
+            # 🔥 최근 연도 저장
             year_match = re.search(r'\d{4}', m["question"])
             if year_match and "last_year" not in memory:
                 memory["last_year"] = year_match.group(0)

@@ -1,5 +1,5 @@
 # llmServer/app/services/test/test_entity_router_flow.py
-# PYTHONPATH=. python -m app.services.test.test_entity_router_flow
+# PYTHONPATH=. python -m app.services.test.test_router_flow
 
 import asyncio
 

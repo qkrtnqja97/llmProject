@@ -42,7 +42,6 @@ async def run_memory_full_test():
     )
     tunnel.start()
 
-    # 1️⃣ DI 통해 컨테이너 생성
     container = await get_container()
 
     memory = container.memory_service
@@ -51,9 +50,6 @@ async def run_memory_full_test():
     user_id = "memory_test_user"
     session_id = "memory_test_session"
 
-    # -------------------------------------------------
-    # 2️⃣ 이전 질문 저장
-    # -------------------------------------------------
     print("📌 Step 1: 이전 질문 저장")
 
     await repo.save(
@@ -61,7 +57,9 @@ async def run_memory_full_test():
         session_id=session_id,
         question="2024년 월별 매출액은?",
         refined_question="2024년 월별 총 매출액을 조회하세요",
-        response_data={"result": "ok"},
+        response_data={
+            "answer": "2024년 월별 매출 데이터입니다."
+        },
         final_sql="SELECT EXTRACT(YEAR FROM sale_date)=2024 FROM sales",
         entity_corrections={},
         execution_time_ms=100,
@@ -69,23 +67,16 @@ async def run_memory_full_test():
 
     print("✅ 이전 질문 저장 완료\n")
 
-    # -------------------------------------------------
-    # 3️⃣ 최근 대화 조회 확인
-    # -------------------------------------------------
     print("📌 Step 2: 최근 대화 조회 확인")
 
     history = await memory.load_recent(user_id=user_id)
 
     print(f"조회된 개수: {len(history)}")
-
     for h in history:
         print(" -", h.get("refined_question"))
 
     print()
 
-    # -------------------------------------------------
-    # 4️⃣ 후속 질문 테스트
-    # -------------------------------------------------
     print("📌 Step 3: 후속 질문 문맥 보강 테스트")
 
     new_question = "23년은?"
@@ -102,9 +93,6 @@ async def run_memory_full_test():
     print("최종 적용 결과:", final_q)
     print()
 
-    # -------------------------------------------------
-    # 5️⃣ 대명사 치환 테스트
-    # -------------------------------------------------
     print("📌 Step 4: 대명사 치환 테스트")
 
     await repo.save(
@@ -112,7 +100,9 @@ async def run_memory_full_test():
         session_id=session_id,
         question="ABC123 제품 매출은?",
         refined_question="ABC123 제품의 매출을 조회하세요",
-        response_data={"result": "ok"},
+        response_data={
+            "answer": "ABC123 제품의 매출은 120000원입니다."
+        },
         final_sql="SELECT * FROM sales WHERE part_number='ABC123'",
         entity_corrections={},
         execution_time_ms=100,
