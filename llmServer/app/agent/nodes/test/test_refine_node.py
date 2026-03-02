@@ -11,7 +11,6 @@ from app.providers.registry import ProviderRegistry
 from app.providers.reranker.cohere_provider import CohereRerankerProvider
 from app.core.config import settings
 
-
 # ---------------------------
 # Mock VectorRepository (Chroma 대신)
 # ---------------------------

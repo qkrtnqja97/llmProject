@@ -2,6 +2,7 @@
 
 import logging
 import time
+import asyncio
 
 from google import genai
 from google.genai import types
@@ -24,18 +25,25 @@ class GeminiLLMProvider(BaseLLMProvider):
 
         request_id = get_request_id()
         start = time.time()
-
         ### 실제 호출 로직
+
         contents = self._convert_to_gemini(messages)
 
-        response = self.client.models.generate_content(
-            model=self.model,
-            contents=contents,
-        )
-        ###
+        loop = asyncio.get_running_loop()
+
+        try:
+            response = await loop.run_in_executor(
+                None,
+                lambda: self.client.models.generate_content(
+                    model=self.model,
+                    contents=contents,
+                )
+            )
+        except Exception:
+            logger.exception("Gemini API call failed")
+            raise
 
         latency_ms = int((time.time() - start) * 1000)
-
         usage = getattr(response, "usage", None)
 
         prompt_tokens = getattr(usage, "prompt_tokens", None)

@@ -4,7 +4,7 @@ from app.utils import text_util
 
 # 타입 지정용
 from app.services.rerank_service import RerankService
-from app.infra.rag.vector_repository import VectorRepository
+from app.infra.vector.vector_repository import VectorRepository
 
 
 class EntityResolverService:
@@ -18,7 +18,7 @@ class EntityResolverService:
     ENTITY_FETCH_TOP_K = 3
     ENTITY_DISTANCE_THRESHOLD = 0.15
     FUZZY_THRESHOLD = 70
-    SYNONYM_RERANK_THRESHOLD = 0.2
+    SYNONYM_RERANK_THRESHOLD = 0.05
     SYNONYM_FETCH_TOP_K = 10
 
     def __init__(
@@ -41,7 +41,7 @@ class EntityResolverService:
         names = self.entity_cache.get("manufacturers", []) + self.entity_cache.get(
             "vendors", []
         )
-
+        # print("DEBUG names in fuzzy:", names)
         for word in question.split():
             if len(word) >= 2:
                 # Utils를 사용하여 "어떻게" 하는지 감춤
@@ -58,17 +58,17 @@ class EntityResolverService:
     # 2 관문 : 1관문 통과되면 문자열 비교
     # 2차: entity_store 벡터 검색으로 part_number 오타 보정 (준협 주석)
     # =========================
-    def _vector_correct_part_number(self, question: str) -> str:
+    async def _vector_correct_part_number(self, question: str) -> str:
         refined = question
 
         # 파트넘버 벡터 유사도 비교 (top_k 설정 가능. default:3)
-        candidates = self.vector_repository.search(
-            collection_name="entity",
-            query=question,
+        candidates = await self.vector_repository.search_by_text(
+            collection_name="SB_entity_store",
+            query_text=question,
             top_k=self.ENTITY_FETCH_TOP_K,
-            with_distance=True,
         )
-
+        # print("DEBUG candidates in part_num:", candidates)
+        
         for doc, meta, dist in candidates:
             # 1관문: 벡터 거리 체크
             if (
@@ -76,10 +76,11 @@ class EntityResolverService:
                 and meta.get("type") == "part_number"
             ):
                 # 2관문: 벡터 공간에서 비교했다면 -> 문자열로 세부 비교 (Utils 호출)
+                candidate_part = meta.get("original_id")
                 for word in question.split():
-                    if text_util.is_valid_part_number_match(word, doc, threshold=0.8):
+                    if text_util.is_valid_part_number_match(word, candidate_part, threshold=0.8):
                         if word.upper() != doc.upper():
-                            refined = refined.replace(word, doc)
+                            refined = refined.replace(word, candidate_part)
 
         return refined
 
@@ -88,23 +89,23 @@ class EntityResolverService:
     #
     # 후보 10개 → 리랭킹 → 상위 n개 중 점수 임계값 통과분 반환
     # =========================
-    def _retrieve_synonyms(self, question: str, top_n: int = 3) -> str:
+    async def _retrieve_synonyms(self, question: str, top_n: int = 3) -> str:
 
         # 후보 10개 조회
-        candidates = self.vector_repository.search(
-            collection_name="synonym",
-            query=question,
+        candidates = await self.vector_repository.search_by_text(
+            collection_name="SB_synonym_store",
+            query_text=question,
             top_k=10,
         )
-
+        # print("DEBUG candidates in synonyms:", candidates)
         if not candidates:
             return ""
 
-        cand_docs = [doc for doc, _ in candidates]
-        cand_metas = [meta for _, meta in candidates]
+        cand_docs = [doc for doc, _, _ in candidates]
+        cand_metas = [meta for _, meta, _ in candidates]
 
         # 리랭킹 + 점수
-        final_docs, final_metas, final_scores = self.reranker.rerank(
+        final_docs, final_metas, final_scores = await self.reranker.rerank(
             question, cand_docs, cand_metas, top_n=top_n, with_scores=True
         )
 
@@ -113,6 +114,7 @@ class EntityResolverService:
             # 디버깅용 프린트문
             # print("DEBUG:", doc, score)
             # print("DEBUG synonym 후보 수:", len(cand_docs))
+            # print("DEBUG rerank score:", doc, score)
             if score > self.SYNONYM_RERANK_THRESHOLD:  # 리랭커 정규화 점수 임계값
                 hints.append(
                     f"'{doc}' → '{meta.get('canonical')}' ({meta.get('type')})"
@@ -149,10 +151,10 @@ class EntityResolverService:
     # =========================
     # 외부 호출용 API
     # =========================
-    def resolve(self, question: str) -> dict:
+    async def resolve(self, question: str) -> dict:
         refined = self._fuzzy_correct(question)
-        refined = self._vector_correct_part_number(refined)
-        synonym_hint = self._retrieve_synonyms(question)
+        refined = await self._vector_correct_part_number(refined)
+        synonym_hint = await self._retrieve_synonyms(question)
         # 아직 메모리 기능은 안넣음 -> 메모리 서비스로 따로 빼기.
         # refined = self._inject_memory(refined, memory)
 

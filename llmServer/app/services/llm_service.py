@@ -21,10 +21,10 @@ class LLMService:
         self.llm_registry = llm_registry
         self.prompt_registry = prompt_registry
 
-        # 🔥 기본 모델 전략 - 추후 환경변수나 이런걸로 빼자.
-        self.router_model = "gemini-2.5-flash"
-        self.sql_model = "gemini-2.5-flash"
-        self.answer_model = "gemini-2.5-flash"
+        # 모델 이름은 config에서 가져온다
+        self.router_model = settings.router_model
+        self.sql_model = settings.sql_model
+        self.answer_model = settings.answer_model
 
     # ==========================================================
     # 🔹 Public Use-case APIs

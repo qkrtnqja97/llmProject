@@ -4,7 +4,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 from google import genai
-from app.config import settings
+from app.core.config import settings
 
 router = APIRouter(prefix="/llm", tags=["LLM"])
 

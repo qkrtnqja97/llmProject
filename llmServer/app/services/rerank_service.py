@@ -12,19 +12,19 @@ class RerankService:
     def __init__(self, reranker: BaseRerankerProvider):
         self.reranker = reranker
 
-    def rerank(
+    async def rerank(
         self,
         query: str,
         docs: list[str],
         metas: List[Dict[str, Any]],
         top_n: int = 3,
-        with_scores: bool = False,
+        with_scores: bool =True,
     ):
         if not docs:
             return ([], [], []) if with_scores else ([], [])
 
         try:
-            scores = self.reranker.score(query, docs)
+            scores = await self.reranker.score(query, docs)
 
             ranked = sorted(
                 zip(scores, docs, metas),

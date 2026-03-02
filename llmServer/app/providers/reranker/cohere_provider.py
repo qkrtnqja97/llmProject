@@ -1,3 +1,6 @@
+# llmServer/app/providers/reranker/cohere_provider.py
+
+import asyncio
 import logging
 from typing import List
 import cohere
@@ -8,26 +11,29 @@ logger = logging.getLogger(__name__)
 
 class CohereRerankerProvider(BaseRerankerProvider):
 
-    def __init__(self, api_key: str, model_name: str = "rerank-v3.5"):
+    def __init__(self, api_key: str, model_name: str = "rerank-v3.0"):
         self.model_name = model_name
         self.client = cohere.ClientV2(api_key)
         logger.info(f"Cohere Reranker initialized with model: {self.model_name}")
 
-    def score(self, query: str, docs: List[str]) -> List[float]:
+    async def score(self, query: str, docs: List[str]) -> List[float]:
 
         if not docs:
             return []
 
+        loop = asyncio.get_running_loop()
+
         try:
-            response = self.client.rerank(
-                model=self.model_name,
-                query=query,
-                documents=docs,
-                top_n=len(docs),  # 전부 점수 받기
+            response = await loop.run_in_executor(
+                None,
+                lambda: self.client.rerank(
+                    model=self.model_name,
+                    query=query,
+                    documents=docs,
+                    top_n=len(docs),
+                )
             )
 
-            # Cohere는 이미 정렬된 결과를 반환함.
-            # 우리는 "원본 docs 순서에 맞는 score 리스트"가 필요하다.
             scores = [0.0] * len(docs)
 
             for result in response.results:
@@ -36,6 +42,5 @@ class CohereRerankerProvider(BaseRerankerProvider):
             return scores
 
         except Exception as e:
-            logger.error(f"Cohere Reranking API error: {e}")
-            # 실패 시 neutral score 반환
-            return [1.0] * len(docs)
+            logger.exception("Cohere Reranking API error")
+            raise RuntimeError("Rerank failed") from e
