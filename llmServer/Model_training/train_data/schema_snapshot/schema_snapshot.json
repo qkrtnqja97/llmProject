@@ -1,0 +1,559 @@
+{
+  "default_schema_env": "inventory_mgmt",
+  "schemas": [
+    {
+      "schema": "inventory_mgmt",
+      "tables": [
+        {
+          "table": "current_products",
+          "columns": [
+            {
+              "name": "part_number",
+              "data_type": "character varying",
+              "is_pk": true
+            },
+            {
+              "name": "description",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "current_quantity",
+              "data_type": "integer",
+              "is_pk": false
+            },
+            {
+              "name": "last_updated",
+              "data_type": "date",
+              "is_pk": false
+            }
+          ]
+        },
+        {
+          "table": "initial_inventory",
+          "columns": [
+            {
+              "name": "part_number",
+              "data_type": "character varying",
+              "is_pk": true
+            },
+            {
+              "name": "initial_quantity",
+              "data_type": "integer",
+              "is_pk": false
+            },
+            {
+              "name": "stock_date",
+              "data_type": "date",
+              "is_pk": false
+            }
+          ]
+        },
+        {
+          "table": "manufacturers",
+          "columns": [
+            {
+              "name": "manufacturer_id",
+              "data_type": "integer",
+              "is_pk": true
+            },
+            {
+              "name": "name",
+              "data_type": "character varying",
+              "is_pk": false
+            }
+          ]
+        },
+        {
+          "table": "products",
+          "columns": [
+            {
+              "name": "part_number",
+              "data_type": "character varying",
+              "is_pk": true
+            },
+            {
+              "name": "description",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "std_unit_cost",
+              "data_type": "numeric",
+              "is_pk": false
+            },
+            {
+              "name": "std_selling_price",
+              "data_type": "numeric",
+              "is_pk": false
+            }
+          ]
+        },
+        {
+          "table": "purchase_orders",
+          "columns": [
+            {
+              "name": "purchase_id",
+              "data_type": "integer",
+              "is_pk": true
+            },
+            {
+              "name": "manufacturer_id",
+              "data_type": "integer",
+              "is_pk": false
+            },
+            {
+              "name": "part_number",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "purchase_quantity",
+              "data_type": "integer",
+              "is_pk": false
+            },
+            {
+              "name": "purchase_date",
+              "data_type": "date",
+              "is_pk": false
+            },
+            {
+              "name": "actual_unit_cost",
+              "data_type": "numeric",
+              "is_pk": false
+            }
+          ]
+        },
+        {
+          "table": "sales_orders",
+          "columns": [
+            {
+              "name": "order_id",
+              "data_type": "integer",
+              "is_pk": true
+            },
+            {
+              "name": "vendor_id",
+              "data_type": "integer",
+              "is_pk": false
+            },
+            {
+              "name": "part_number",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "sale_quantity",
+              "data_type": "integer",
+              "is_pk": false
+            },
+            {
+              "name": "sale_date",
+              "data_type": "date",
+              "is_pk": false
+            },
+            {
+              "name": "actual_selling_price",
+              "data_type": "numeric",
+              "is_pk": false
+            }
+          ]
+        },
+        {
+          "table": "vendors",
+          "columns": [
+            {
+              "name": "vendor_id",
+              "data_type": "integer",
+              "is_pk": true
+            },
+            {
+              "name": "vendor_name",
+              "data_type": "character varying",
+              "is_pk": false
+            }
+          ]
+        }
+      ],
+      "foreign_keys": [
+        "initial_inventory.part_number -> inventory_mgmt.products.part_number",
+        "purchase_orders.manufacturer_id -> inventory_mgmt.manufacturers.manufacturer_id",
+        "purchase_orders.part_number -> inventory_mgmt.products.part_number",
+        "sales_orders.part_number -> inventory_mgmt.products.part_number",
+        "sales_orders.vendor_id -> inventory_mgmt.vendors.vendor_id"
+      ]
+    },
+    {
+      "schema": "public",
+      "tables": [],
+      "foreign_keys": []
+    },
+    {
+      "schema": "sql_assistant",
+      "tables": [
+        {
+          "table": "conversations",
+          "columns": [
+            {
+              "name": "conv_id",
+              "data_type": "uuid",
+              "is_pk": true
+            },
+            {
+              "name": "user_id",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "session_id",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "role",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "question",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "refined_question",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "content",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "final_sql",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "response_data",
+              "data_type": "jsonb",
+              "is_pk": false
+            },
+            {
+              "name": "entity_corrections",
+              "data_type": "jsonb",
+              "is_pk": false
+            },
+            {
+              "name": "execution_time_ms",
+              "data_type": "integer",
+              "is_pk": false
+            },
+            {
+              "name": "is_archived",
+              "data_type": "boolean",
+              "is_pk": false
+            },
+            {
+              "name": "created_at",
+              "data_type": "timestamp with time zone",
+              "is_pk": false
+            }
+          ]
+        },
+        {
+          "table": "gold_examples",
+          "columns": [
+            {
+              "name": "example_id",
+              "data_type": "uuid",
+              "is_pk": true
+            },
+            {
+              "name": "question",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "pattern_id",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "slots_json",
+              "data_type": "jsonb",
+              "is_pk": false
+            },
+            {
+              "name": "final_sql",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "created_at",
+              "data_type": "timestamp with time zone",
+              "is_pk": false
+            }
+          ]
+        },
+        {
+          "table": "request_logs",
+          "columns": [
+            {
+              "name": "request_id",
+              "data_type": "uuid",
+              "is_pk": true
+            },
+            {
+              "name": "user_id",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "question",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "refined_question",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "selected_pattern_id",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "slots_json",
+              "data_type": "jsonb",
+              "is_pk": false
+            },
+            {
+              "name": "entity_corrections",
+              "data_type": "jsonb",
+              "is_pk": false
+            },
+            {
+              "name": "final_sql",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "execution_success",
+              "data_type": "boolean",
+              "is_pk": false
+            },
+            {
+              "name": "execution_time_ms",
+              "data_type": "integer",
+              "is_pk": false
+            },
+            {
+              "name": "error_message",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "row_count",
+              "data_type": "integer",
+              "is_pk": false
+            },
+            {
+              "name": "user_satisfaction",
+              "data_type": "smallint",
+              "is_pk": false
+            },
+            {
+              "name": "created_at",
+              "data_type": "timestamp with time zone",
+              "is_pk": false
+            }
+          ]
+        },
+        {
+          "table": "template_library",
+          "columns": [
+            {
+              "name": "pattern_id",
+              "data_type": "character varying",
+              "is_pk": true
+            },
+            {
+              "name": "sql_template",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "slots_schema",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "example_question",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "usage_count",
+              "data_type": "integer",
+              "is_pk": false
+            },
+            {
+              "name": "is_active",
+              "data_type": "boolean",
+              "is_pk": false
+            },
+            {
+              "name": "created_at",
+              "data_type": "timestamp with time zone",
+              "is_pk": false
+            },
+            {
+              "name": "updated_at",
+              "data_type": "timestamp with time zone",
+              "is_pk": false
+            }
+          ]
+        }
+      ],
+      "foreign_keys": [
+        "gold_examples.pattern_id -> sql_assistant.template_library.pattern_id"
+      ]
+    },
+    {
+      "schema": "users",
+      "tables": [
+        {
+          "table": "tasks",
+          "columns": [
+            {
+              "name": "id",
+              "data_type": "integer",
+              "is_pk": true
+            },
+            {
+              "name": "emp_id",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "title",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "content",
+              "data_type": "text",
+              "is_pk": false
+            },
+            {
+              "name": "priority",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "status",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "due_date",
+              "data_type": "timestamp with time zone",
+              "is_pk": false
+            },
+            {
+              "name": "created_at",
+              "data_type": "timestamp with time zone",
+              "is_pk": false
+            },
+            {
+              "name": "updated_at",
+              "data_type": "timestamp with time zone",
+              "is_pk": false
+            }
+          ]
+        },
+        {
+          "table": "user_info",
+          "columns": [
+            {
+              "name": "id",
+              "data_type": "integer",
+              "is_pk": true
+            },
+            {
+              "name": "emp_id",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "password",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "name",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "is_active",
+              "data_type": "boolean",
+              "is_pk": false
+            },
+            {
+              "name": "created_at",
+              "data_type": "timestamp with time zone",
+              "is_pk": false
+            },
+            {
+              "name": "updated_at",
+              "data_type": "timestamp with time zone",
+              "is_pk": false
+            }
+          ]
+        },
+        {
+          "table": "user_settings",
+          "columns": [
+            {
+              "name": "emp_id",
+              "data_type": "character varying",
+              "is_pk": true
+            },
+            {
+              "name": "theme",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "start_page",
+              "data_type": "character varying",
+              "is_pk": false
+            },
+            {
+              "name": "menu_config",
+              "data_type": "jsonb",
+              "is_pk": false
+            },
+            {
+              "name": "created_at",
+              "data_type": "timestamp without time zone",
+              "is_pk": false
+            },
+            {
+              "name": "updated_at",
+              "data_type": "timestamp without time zone",
+              "is_pk": false
+            }
+          ]
+        }
+      ],
+      "foreign_keys": [
+        "tasks.emp_id -> users.user_info.emp_id",
+        "user_settings.emp_id -> users.user_info.emp_id"
+      ]
+    }
+  ]
+}

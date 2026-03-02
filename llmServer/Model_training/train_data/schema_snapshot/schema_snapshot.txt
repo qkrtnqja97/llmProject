@@ -1,0 +1,35 @@
+# schema_snapshot
+
+## schema: inventory_mgmt
+tables:
+- current_products(part_number PK, description, current_quantity, last_updated)
+- initial_inventory(part_number PK, initial_quantity, stock_date)
+- manufacturers(manufacturer_id PK, name)
+- products(part_number PK, description, std_unit_cost, std_selling_price)
+- purchase_orders(purchase_id PK, manufacturer_id, part_number, purchase_quantity, purchase_date, actual_unit_cost)
+- sales_orders(order_id PK, vendor_id, part_number, sale_quantity, sale_date, actual_selling_price)
+- vendors(vendor_id PK, vendor_name)
+FK:
+- initial_inventory.part_number -> inventory_mgmt.products.part_number
+- purchase_orders.manufacturer_id -> inventory_mgmt.manufacturers.manufacturer_id
+- purchase_orders.part_number -> inventory_mgmt.products.part_number
+- sales_orders.part_number -> inventory_mgmt.products.part_number
+- sales_orders.vendor_id -> inventory_mgmt.vendors.vendor_id
+
+## schema: sql_assistant
+tables:
+- conversations(conv_id PK, user_id, session_id, role, question, refined_question, content, final_sql, response_data, entity_corrections, execution_time_ms, is_archived, created_at)
+- gold_examples(example_id PK, question, pattern_id, slots_json, final_sql, created_at)
+- request_logs(request_id PK, user_id, question, refined_question, selected_pattern_id, slots_json, entity_corrections, final_sql, execution_success, execution_time_ms, error_message, row_count, user_satisfaction, created_at)
+- template_library(pattern_id PK, sql_template, slots_schema, example_question, usage_count, is_active, created_at, updated_at)
+FK:
+- gold_examples.pattern_id -> sql_assistant.template_library.pattern_id
+
+## schema: users
+tables:
+- tasks(id PK, emp_id, title, content, priority, status, due_date, created_at, updated_at)
+- user_info(id PK, emp_id, password, name, is_active, created_at, updated_at)
+- user_settings(emp_id PK, theme, start_page, menu_config, created_at, updated_at)
+FK:
+- tasks.emp_id -> users.user_info.emp_id
+- user_settings.emp_id -> users.user_info.emp_id

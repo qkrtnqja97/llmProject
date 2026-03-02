@@ -1,0 +1,15 @@
+tables:
+current_products(part_number PK, description, current_quantity, last_updated)
+initial_inventory(part_number PK, initial_quantity, stock_date)
+manufacturers(manufacturer_id PK, name)
+products(part_number PK, description, std_unit_cost, std_selling_price)
+purchase_orders(purchase_id PK, manufacturer_id, part_number, purchase_quantity, purchase_date, actual_unit_cost)
+sales_orders(order_id PK, vendor_id, part_number, sale_quantity, sale_date, actual_selling_price)
+vendors(vendor_id PK, vendor_name)
+
+FK:
+initial_inventory.part_number -> products.part_number
+purchase_orders.manufacturer_id -> manufacturers.manufacturer_id
+purchase_orders.part_number -> products.part_number
+sales_orders.part_number -> products.part_number
+sales_orders.vendor_id -> vendors.vendor_id

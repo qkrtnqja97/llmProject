@@ -1,0 +1,25 @@
+#requirements.txt
+# ===== DB =====
+psycopg2-binary
+
+# ===== Env 설정 =====
+python-dotenv
+
+# ===== Vector DB (RAG) =====
+chromadb
+
+# ===== Web/API 서버 =====
+fastapi
+uvicorn
+
+# ===== HTTP 요청 (API fallback용) =====
+httpx
+
+# ===== 데이터 처리 =====
+pandas
+
+# ===== JSON / 타입 검증 =====
+pydantic
+
+# ===== 로깅 & 유틸 =====
+tqdm
