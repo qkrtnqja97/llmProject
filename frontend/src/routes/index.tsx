@@ -1,20 +1,31 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { useSettings } from "../context/SettingContext";
 
 // 레이아웃 및 페이지
 import AppLayout from "../components/layout/AppLayout";
-import HomePage from "../pages/HomePage";
-import ChatbotPage from "../pages/ChatbotPage";
-import DashboardPage from "../pages/DashboardPage";
-import CompanyPage from "../pages/CompanyPage";
-import LibraryPage from "../pages/LibraryPage";
-import InsightPage from "../pages/InsightPage";
+import HomePage from "../pages/Homepage/HomePage";
+import ChatbotPage from "../pages/Chatbot/ChatbotPage";
+import DashboardPage from "../pages/Dashboard/DashboardPage";
+import CompanyPage from "../pages/Company/CompanyPage";
+import LibraryPage from "../pages/Library/LibraryPage";
+import InsightPage from "../pages/Insight/InsightPage";
+import TaskPage from "../pages/Task/TaskPage";
+import InventoryPage from "../pages/Inventory/InventoryPage";
+import OrderPage from "../pages/Order/OrderPage";
+import ProductPage from "../pages/Product/ProductPage";
+import ContactPage from "../pages/Contact/ContactPage";
+import HistoryPage from "../pages/History/HistoryPage";
 
 /**
  * 인증 보호 가드
  */
 const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated } = useAuth();
+  const { isLoading } = useSettings();
+
+  if (isLoading) return null;
+
   return isAuthenticated ? <>{children}</> : <Navigate to="/" replace />;
 };
 
@@ -63,6 +74,55 @@ const AppRoutes = () => {
           element={
             <PrivateRoute>
               <InsightPage />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/tasks"
+          element={
+            <PrivateRoute>
+              <TaskPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/inventory"
+          element={
+            <PrivateRoute>
+              <InventoryPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/orders"
+          element={
+            <PrivateRoute>
+              <OrderPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/products"
+          element={
+            <PrivateRoute>
+              <ProductPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/contacts"
+          element={
+            <PrivateRoute>
+              <ContactPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <PrivateRoute>
+              <HistoryPage />
             </PrivateRoute>
           }
         />

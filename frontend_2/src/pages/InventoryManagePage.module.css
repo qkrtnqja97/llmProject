@@ -1,0 +1,276 @@
+/* InventoryManagePage.module.css - 테마 최적화 버전 */
+
+.container {
+  padding: 2rem;
+  max-width: 1400px; /* 📍 테이블 가로 확보를 위해 약간 확장 */
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+/* 📍 헤더 */
+.header {
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1.5rem;
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.titleIcon {
+  color: var(--accent-color); /* point-color 대신 accent-color로 통일 */
+}
+
+.titleSection h1 {
+  font-size: 1.8rem;
+  color: var(--text-main);
+  margin: 0;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1.5;
+}
+
+/* 📍 통계 카드 */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2.5rem;
+}
+
+.statCard {
+  background: var(--bg-card);
+  padding: 1.8rem;
+  border-radius: 20px; /* 📍 다른 페이지와 곡률 통일 */
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease;
+}
+
+.statCard:hover {
+  transform: translateY(-4px);
+}
+
+.statLabel {
+  color: var(--text-sub);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.statValue {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  font-family: "JetBrains Mono", monospace;
+}
+
+.warning {
+  color: #ff4757; /* 부족 수량 강조 */
+}
+
+/* 📍 컨트롤 섹션 */
+.tableControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+  gap: 1rem;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: var(--bg-card);
+  padding: 0.8rem 1.2rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s;
+  flex: 1;
+  max-width: 480px;
+}
+
+.searchBar:focus-within {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent-color), transparent 85%);
+}
+
+.searchBar input {
+  background: none;
+  border: none;
+  color: var(--text-main);
+  outline: none;
+  width: 100%;
+  font-size: 1rem;
+}
+
+.searchBar svg {
+  color: var(--text-sub);
+}
+
+.pageSizeSelect {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  outline: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.pageSizeSelect:hover {
+  border-color: var(--accent-color);
+}
+
+/* 📍 테이블 테이블 */
+.tableWrapper {
+  background: var(--bg-card);
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.03);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table th {
+  background: var(--bg-item);
+  color: var(--text-sub);
+  padding: 1.2rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--border-color);
+}
+
+.table td {
+  padding: 1.2rem;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
+  font-size: 0.95rem;
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: color-mix(in srgb, var(--accent-color), transparent 96%);
+}
+
+.partNum {
+  color: var(--accent-color);
+  font-weight: 700;
+  font-family: "JetBrains Mono", monospace;
+}
+
+.quantity {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+/* 📍 뱃지 스타일 */
+.badge {
+  padding: 6px 14px;
+  border-radius: 30px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.safe {
+  background: rgba(39, 174, 96, 0.1);
+  color: #27ae60;
+}
+
+.danger {
+  background: rgba(255, 71, 87, 0.1);
+  color: #ff4757;
+}
+
+/* 📍 페이지네이션 */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 2rem;
+  background: var(--bg-card);
+}
+
+.pagination button {
+  min-width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-card);
+  color: var(--text-main);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  transition: all 0.2s;
+}
+
+.pagination button:hover:not(:disabled) {
+  background: var(--bg-item);
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}
+
+.pagination button.activePage {
+  background: var(--accent-color);
+  color: #ffffff;
+  border-color: var(--accent-color);
+}
+
+.pagination button:disabled {
+  opacity: 0.2;
+  cursor: not-allowed;
+}
+
+/* 📍 상태 알림 */
+.loading,
+.noData {
+  padding: 8rem;
+  text-align: center;
+  color: var(--text-sub);
+  font-weight: 500;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .tableControls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .searchBar {
+    max-width: 100%;
+  }
+}

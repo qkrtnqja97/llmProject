@@ -1,0 +1,27 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.header {
+  flex-shrink: 0;
+  padding-bottom: 16px;
+}
+
+.chatWrapper {
+  flex: 1;
+  min-height: 0;
+}
+
+.title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #18181b;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: #71717a;
+}

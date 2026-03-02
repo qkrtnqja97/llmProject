@@ -1,0 +1,195 @@
+/* ProductDetailModal.module.css - 테마 수정 전문 */
+
+.modalOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px); /* 조금 더 선명한 블러로 조정 */
+}
+
+.modalContent {
+  background: var(--bg-card);
+  width: 90%;
+  max-width: 480px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  animation: modalPop 0.25s ease-out;
+  border: 1px solid var(--border-color); /* 테마 경계선 추가 */
+}
+
+@keyframes modalPop {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.modalHeader {
+  padding: 1.2rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-card);
+}
+
+.modalHeader h2 {
+  font-size: 1.1rem;
+  margin: 0;
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: var(--text-sub); /* --text-muted 대체 */
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+}
+
+.closeBtn:hover {
+  color: var(--text-main);
+}
+
+.modalBody {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  background: var(--bg-card);
+}
+
+.modalImage {
+  width: 100%;
+  height: 150px;
+  background: var(--bg-sidebar); /* --bg-header 대체하여 깊이감 부여 */
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-sub); /* --text-muted 대체 */
+  border: 1px solid var(--border-color);
+}
+
+/* 📍 아이콘 색상 직접 제어 */
+.imageIcon {
+  color: var(--text-sub);
+  opacity: 0.5;
+}
+
+.modalInfoList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+}
+
+.infoItem {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.infoItem label {
+  font-size: 0.8rem;
+  color: var(--text-sub); /* --text-muted 대체 */
+  font-weight: 600;
+}
+
+.infoItem span {
+  font-size: 0.9rem;
+  color: var(--text-main);
+  font-weight: 500;
+  text-align: right;
+}
+
+.descText {
+  max-width: 250px;
+  word-break: keep-all;
+}
+
+/* 📍 재고 강조색 테마 연동 */
+.stockValue {
+  color: var(--accent-color) !important; /* --point-color 대체 */
+  font-weight: 700 !important;
+}
+
+.priceValue {
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.modalFooter {
+  padding: 1.2rem;
+  display: flex;
+  gap: 0.8rem;
+  background: var(--bg-sidebar); /* 푸터 배경을 사이드바 색상으로 구분 */
+  border-top: 1px solid var(--border-color);
+}
+
+.confirmBtn,
+.editBtn {
+  flex: 1;
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.confirmBtn {
+  background: var(--accent-color); /* --point-color 대체 */
+  /* index.css의 버튼 글자색 규칙이 적용됨 */
+}
+
+.editBtn {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+}
+
+/* --- 📍 그레이 테마 전용: 버튼 시인성 개선 패치 --- */
+:global([data-theme="gray"]) .confirmBtn {
+  /* 배경을 검정색(#222) 대신 명확한 회색으로 변경 */
+  background-color: #555559;
+  /* 글자색을 확실하게 흰색으로 고정 */
+  color: #ffffff !important;
+  border: 1px solid #444448;
+}
+
+:global([data-theme="gray"]) .confirmBtn:hover {
+  background-color: #333336; /* 호버 시 조금 더 짙은 회색 */
+  filter: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.confirmBtn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-1px);
+}
+
+.editBtn:hover {
+  background: var(--bg-item);
+}
+
+.confirmBtn:active,
+.editBtn:active {
+  transform: translateY(0);
+}

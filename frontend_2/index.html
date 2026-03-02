@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Biz AI</title>
+    <script>
+      (function () {
+        try {
+          const savedTheme = localStorage.getItem("theme");
+          const validThemes = ["navy", "gray", "forest"];
+          const themeToApply =
+            savedTheme && validThemes.includes(savedTheme)
+              ? savedTheme
+              : "navy";
+          document.documentElement.setAttribute("data-theme", themeToApply);
+          // 배경색 동기화 (스크립트 실행 중 배경이 하얗게 뜨는 것 방지)
+          const bgColors = {
+            navy: "#0a192f",
+            gray: "#e0e0e0",
+            forest: "#1a1c1a",
+          };
+          document.documentElement.style.backgroundColor =
+            bgColors[themeToApply];
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

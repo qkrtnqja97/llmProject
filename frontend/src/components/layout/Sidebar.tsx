@@ -1,88 +1,206 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { useCompany } from "../../context/CompanyContext";
-import { layoutStorage } from "../../shared/libs/layoutStorage";
+import {
+  DragDropContext,
+  Droppable,
+  Draggable,
+  type DropResult,
+} from "@hello-pangea/dnd";
 import { useAuth } from "../../context/AuthContext";
-// ✅ CSS Module 임포트
+import { useSettings } from "../../context/SettingContext";
+import { useCompany } from "../../context/CompanyContext";
+import SettingsModal from "../settings/SettingModal";
 import styles from "./Sidebar.module.css";
 
 const Sidebar: React.FC = () => {
-  const { company } = useCompany();
   const { user, logout } = useAuth();
-  const menu = layoutStorage.loadMenu();
+  const { settings, updateSettings } = useSettings();
+  const { company } = useCompany();
 
-  const handleLogout = () => {
-    if (window.confirm("로그아웃 하시겠습니까?")) {
-      logout();
-    }
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [showConfig, setShowConfig] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [tempMenus, setTempMenus] = useState(settings.sidebarMenus);
+
+  // --- 이벤트 핸들러 ---
+  const handleEditStart = () => {
+    setTempMenus([...settings.sidebarMenus]);
+    setIsEditing(true);
+  };
+
+  const handleEditSave = () => {
+    updateSettings({ ...settings, sidebarMenus: tempMenus });
+    setIsEditing(false);
+  };
+
+  const onDragEnd = (result: DropResult) => {
+    if (!result.destination) return;
+    const items = [...tempMenus];
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+    setTempMenus(items);
+  };
+
+  const handleToggleVisible = (id: string) => {
+    setTempMenus((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, isVisible: !m.isVisible } : m)),
+    );
   };
 
   return (
-    <aside className={styles.sidebar}>
-      {/* 로고 섹션 */}
-      <div className={styles.logo}>
-        {company.logoUrl ? (
-          <img src={company.logoUrl} alt="logo" className={styles.logoImg} />
-        ) : (
+    <aside
+      className={`${styles.sidebar} ${isCollapsed ? styles.collapsed : ""}`}
+    >
+      {/* [섹션 1] 헤더: 로고 및 접기 버튼 */}
+      <div className={styles.header}>
+        <div className={styles.brand}>
           <div className={styles.logoBadge}>
-            {company.name.slice(0, 2).toUpperCase()}
+            {company.logoUrl ? (
+              <img
+                src={company.logoUrl}
+                alt="Logo"
+                className={styles.logoImg}
+              />
+            ) : (
+              (company.name || "B").charAt(0).toUpperCase()
+            )}
           </div>
-        )}
-        <span className={styles.logoText}>{company.name}</span>
-      </div>
-
-      {/* 메인 네비게이션 */}
-      <nav className={styles.nav}>
-        {menu
-          .filter((m) => m.visible !== false)
-          .map((item) => (
-            <NavLink
-              key={item.id}
-              to={item.path}
-              className={({ isActive }) =>
-                `${styles.navItem} ${isActive ? styles.active : ""}`
-              }
-            >
-              <span className={styles.navIcon}>
-                {item.pinned ? "📌" : "📄"}
-              </span>
-              {item.label}
-            </NavLink>
-          ))}
-      </nav>
-
-      {/* 하단 설정 영역 */}
-      <div className={styles.sidebarBottom}>
-        <NavLink
-          to="/company"
-          className={({ isActive }) =>
-            `${styles.navItemGhost} ${isActive ? styles.activeGhost : ""}`
-          }
-        >
-          <span className={styles.navIcon}>⚙️</span>
-          시스템 설정
-        </NavLink>
-
-        {/* ✅ 통합된 유저 섹션: 클릭 시 로그아웃 */}
+          {!isCollapsed && (
+            <span className={styles.companyName}>
+              {company.name || "biz ai"}
+            </span>
+          )}
+        </div>
         <button
-          className={styles.sidebarFooter}
-          onClick={handleLogout}
-          title="클릭하여 로그아웃"
+          className={styles.collapseBtn}
+          onClick={() => setIsCollapsed(!isCollapsed)}
         >
-          <div className={styles.userCircle}>
-            {user?.name?.slice(0, 1) || "A"}
-          </div>
-          <div className={styles.userInfo}>
-            <span className={styles.userName}>
-              {user?.name || "Admin User"}
-            </span>
-            <span className={styles.userSub}>
-              {user?.empId || "관리자 계정"}
-            </span>
-          </div>
-          <span className={styles.logoutText}>로그아웃</span>
+          {isCollapsed ? "»" : "«"}
         </button>
       </div>
+
+      {/* [섹션 2] 내비게이션: 스크롤 가능한 메뉴 리스트 */}
+      <nav className={styles.nav}>
+        <div className={styles.groupHeader}>
+          {!isCollapsed && (
+            <span className={styles.groupLabel}>사용자 정의 메뉴</span>
+          )}
+          {!isCollapsed && !isEditing && (
+            <button className={styles.inlineEditBtn} onClick={handleEditStart}>
+              ⚙️
+            </button>
+          )}
+        </div>
+
+        <DragDropContext onDragEnd={onDragEnd}>
+          <Droppable droppableId="menuList" isDropDisabled={!isEditing}>
+            {(provided) => (
+              <div
+                {...provided.droppableProps}
+                ref={provided.innerRef}
+                className={styles.scrollArea}
+              >
+                {(isEditing ? tempMenus : settings.sidebarMenus).map(
+                  (item, idx) => {
+                    if (!isEditing && !item.isVisible) return null;
+                    return (
+                      <Draggable
+                        key={item.id}
+                        draggableId={item.id}
+                        index={idx}
+                        isDragDisabled={!isEditing}
+                      >
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                            className={`${styles.navItemWrapper} ${isEditing ? styles.editing : ""} ${snapshot.isDragging ? styles.dragging : ""}`}
+                            onClick={(e) => isEditing && e.preventDefault()} // 편집 시 링크 이동 차단
+                          >
+                            <NavLink
+                              to={item.path}
+                              className={({ isActive }) =>
+                                `${styles.navItem} ${isActive && !isEditing ? styles.active : ""}`
+                              }
+                              style={isEditing ? { pointerEvents: "none" } : {}} // 링크 기능 비활성화
+                            >
+                              <span className={styles.navIcon}>
+                                {item.icon || "🔹"}
+                              </span>
+                              {!isCollapsed && (
+                                <span className={styles.navLabel}>
+                                  {item.label}
+                                </span>
+                              )}
+                            </NavLink>
+
+                            {isEditing && !isCollapsed && (
+                              <div
+                                className={styles.editTools}
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                <label className={styles.switch}>
+                                  <input
+                                    type="checkbox"
+                                    checked={item.isVisible}
+                                    onChange={() =>
+                                      handleToggleVisible(item.id)
+                                    }
+                                  />
+                                  <span className={styles.slider}></span>
+                                </label>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </Draggable>
+                    );
+                  },
+                )}
+                {provided.placeholder}
+              </div>
+            )}
+          </Droppable>
+        </DragDropContext>
+      </nav>
+
+      {/* [섹션 3] 하단 유틸리티: 편집 버튼(고정) 및 사용자 설정 */}
+      <div className={styles.sidebarBottom}>
+        {isEditing && !isCollapsed && (
+          <div className={styles.editActions}>
+            <button className={styles.saveBtn} onClick={handleEditSave}>
+              확인
+            </button>
+            <button
+              className={styles.cancelBtn}
+              onClick={() => setIsEditing(false)}
+            >
+              취소
+            </button>
+          </div>
+        )}
+
+        <div className={styles.userRow}>
+          <div className={styles.userAvatar}>{user?.name?.[0]}</div>
+          {!isCollapsed && (
+            <span className={styles.userName}>{user?.name}</span>
+          )}
+        </div>
+        <div className={styles.bottomButtons}>
+          <button
+            className={styles.bottomBtn}
+            onClick={() => setShowConfig(true)}
+          >
+            ⚙️ {!isCollapsed && "설정"}
+          </button>
+          <button className={styles.bottomBtn} onClick={logout}>
+            🚪 {!isCollapsed && "로그아웃"}
+          </button>
+        </div>
+      </div>
+
+      {showConfig && <SettingsModal onClose={() => setShowConfig(false)} />}
     </aside>
   );
 };

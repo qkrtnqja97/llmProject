@@ -1,0 +1,19 @@
+.heroSection {
+  text-align: center;
+  padding: 80px 20px;
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+  border-radius: 32px;
+}
+
+.mainTitle {
+  font-size: 32px;
+  font-weight: 800;
+  color: #111827;
+  letter-spacing: -0.02em;
+}
+
+.description {
+  margin-top: 12px;
+  font-size: 16px;
+  color: #64748b;
+}

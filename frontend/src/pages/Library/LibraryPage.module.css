@@ -1,0 +1,11 @@
+.listContainer {
+  margin-top: 24px;
+}
+
+.emptyState {
+  padding: 40px;
+  text-align: center;
+  color: #94a3b8;
+  background: #f1f5f9;
+  border-radius: 12px;
+}

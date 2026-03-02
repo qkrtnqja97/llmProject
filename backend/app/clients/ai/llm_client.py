@@ -2,6 +2,7 @@
 # LLM 서버와 통신하기 위한 클라이언트 클래스 정의
 
 import httpx
+
 from app.core.config import settings
 
 class LLMClient:

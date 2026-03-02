@@ -1,166 +1,313 @@
+/* ==========================================================================
+   1. 사이드바 기본 레이아웃
+   ========================================================================== */
 .sidebar {
-  width: 260px;
+  width: 280px;
   background: #ffffff;
-  border-right: 1px solid #e5e7eb;
+  border-right: 1px solid #f1f5f9;
   display: flex;
   flex-direction: column;
-  padding: 16px 14px;
   height: 100vh;
+  padding: 16px;
+  position: relative;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.logo {
+.collapsed {
+  width: 84px;
+}
+
+/* ==========================================================================
+   2. 헤더 및 브랜드 로직
+   ========================================================================== */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+.brand {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 10px;
-  margin-bottom: 24px;
-}
-
-.logoImg {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  object-fit: contain;
+  gap: 14px;
 }
 
 .logoBadge {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
+  width: 44px;
+  height: 44px;
   background: #111827;
-  color: #f9fafb;
-  font-size: 13px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-}
-
-.logoText {
-  font-weight: 700;
-  font-size: 16px;
-  color: #111827;
-  letter-spacing: -0.02em;
-}
-
-.nav {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  flex: 1;
-}
-
-.navItem {
-  display: flex;
-  align-items: center;
-  padding: 10px 12px;
-  border-radius: 12px;
-  font-size: 14px;
-  color: #4b5563;
-  text-decoration: none;
-  transition: all 0.2s;
-}
-
-.navItem:hover {
-  background: #f3f4ff;
-  color: #111827;
-}
-
-/* NavLink isActive가 true일 때 적용 */
-.active {
-  background: #111827 !important;
-  color: #ffffff !important;
-  font-weight: 600;
-}
-
-.navIcon {
-  width: 20px;
-  margin-right: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-}
-
-.sidebarBottom {
-  margin-top: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding-top: 16px;
-  border-top: 1px solid #f3f4f6;
-}
-
-.navItemGhost {
-  display: flex;
-  align-items: center;
-  padding: 8px 12px;
-  font-size: 13px;
-  color: #9ca3af;
-  text-decoration: none;
   border-radius: 10px;
-}
-
-.activeGhost {
-  background: #f3f4f6;
-  color: #111827;
-}
-
-.sidebarFooter {
-  margin-top: 8px;
-  padding: 10px;
-  border-radius: 12px;
-  background: #f9fafb;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  transition: all 0.2s;
-  border: 1px solid transparent;
-  width: 100%; /* 버튼이므로 가로 가득 채움 */
-}
-
-.sidebarFooter:hover {
-  background: #f3f4f6;
-  border-color: #e5e7eb;
-}
-
-.logoutText {
-  margin-left: auto;
-  font-size: 11px;
-  color: #ef4444;
-  font-weight: 600;
-}
-
-.sidebarFooter:hover .logoutText {
-  display: block; /* 마우스 올리면 표시 */
-}
-
-.userCircle {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #111827;
   color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
+  font-weight: 900;
+  font-size: 20px;
+  flex-shrink: 0;
+  overflow: hidden;
 }
 
-.userInfo {
+.logoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.companyName {
+  font-size: 18px;
+  font-weight: 800;
+  color: #111827;
+  white-space: nowrap;
+}
+
+.collapseBtn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #1e293b;
+  cursor: pointer;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+.collapseBtn:hover {
+  background: #1e293b;
+  color: #fff;
+}
+
+/* ==========================================================================
+   3. 메뉴 내비게이션 (스크롤 영역)
+   ========================================================================== */
+.nav {
+  flex: 1;
   display: flex;
   flex-direction: column;
+  min-height: 0; /* 스크롤 활성화를 위한 필수값 */
 }
 
-.userName {
+.groupHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+
+.groupLabel {
+  font-size: 11px;
+  font-weight: 700;
+  color: #94a3b8;
+  text-transform: uppercase;
+}
+
+.scrollArea {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+}
+
+/* 스크롤바 커스텀 */
+.scrollArea::-webkit-scrollbar {
+  width: 4px;
+}
+.scrollArea::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+.navItemWrapper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+  border-radius: 12px;
+  transition: 0.2s;
+}
+
+.navItem {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #64748b;
+  user-select: none;
+}
+
+.active {
+  color: #111827 !important;
+  font-weight: 700;
+  background: #f1f5f9;
+}
+
+.navIcon {
+  font-size: 20px;
+  margin-right: 14px;
+  opacity: 0.7;
+}
+
+/* ==========================================================================
+   4. 편집 모드 전용 스타일
+   ========================================================================== */
+.editing {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  cursor: grab !important;
+}
+
+.dragging {
+  background: #ffffff !important;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+  border: 1px solid #111827;
+  z-index: 1000;
+}
+
+.editTools {
+  padding-right: 12px;
+  display: flex;
+  align-items: center;
+}
+
+/* 토글 스위치 */
+.switch {
+  position: relative;
+  width: 32px;
+  height: 18px;
+}
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  background-color: #cbd5e1;
+  transition: 0.3s;
+  border-radius: 34px;
+}
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 14px;
+  width: 14px;
+  left: 2px;
+  bottom: 2px;
+  background-color: white;
+  transition: 0.3s;
+  border-radius: 50%;
+}
+.switch input:checked + .slider {
+  background-color: #111827;
+}
+.switch input:checked + .slider:before {
+  transform: translateX(14px);
+}
+
+/* ==========================================================================
+   5. 하단 고정 영역 (확인/취소 버튼 포함)
+   ========================================================================== */
+.sidebarBottom {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid #f1f5f9;
+  background: #fff;
+  flex-shrink: 0;
+}
+
+.editActions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.saveBtn,
+.cancelBtn {
+  flex: 1;
+  padding: 10px;
+  border-radius: 8px;
   font-size: 13px;
   font-weight: 600;
-  color: #111827;
+  cursor: pointer;
 }
 
-.userSub {
-  font-size: 11px;
-  color: #6b7280;
+.saveBtn {
+  background: #111827;
+  color: white;
+  border: none;
+}
+.cancelBtn {
+  background: white;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+}
+
+.userRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+.userAvatar {
+  width: 32px;
+  height: 32px;
+  background: #e2e8f0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.bottomButtons {
+  display: flex;
+  gap: 8px;
+}
+.bottomBtn {
+  flex: 1;
+  padding: 12px 8px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+  cursor: pointer;
+  font-size: 13px;
+}
+
+/* ==========================================================================
+   6. 축소 모드 대응
+   ========================================================================== */
+.collapsed .companyName,
+.collapsed .groupLabel,
+.collapsed .navLabel,
+.collapsed .userName,
+.collapsed .editActions {
+  display: none;
+}
+.collapsed .header,
+.collapsed .bottomBtn {
+  justify-content: center;
+}
+.collapsed .navIcon {
+  margin-right: 0;
 }

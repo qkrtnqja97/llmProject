@@ -1,0 +1,106 @@
+/* LoginModal.module.css - 테마 수정본 */
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modal-content {
+  background: var(--bg-card);
+  padding: 2.5rem;
+  border-radius: 16px;
+  width: 360px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+  animation: modalFadeIn 0.3s ease-out;
+  transition:
+    background-color 0.3s ease,
+    border-color 0.3s ease;
+}
+
+.modal-content h2 {
+  color: var(--text-main);
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
+  text-align: center;
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal-content input {
+  background: var(--bg-item);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px 16px;
+  color: var(--text-main);
+  font-size: 1rem;
+  outline: none;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    background-color 0.3s;
+}
+
+.modal-content input:focus {
+  border-color: var(--accent-color);
+  /* 📍 테마 대응: 하드코딩된 파란색 대신 포인트 컬러를 20% 투명도로 적용 */
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-color), transparent 80%);
+}
+
+.modal-content input::placeholder {
+  color: var(--text-sub);
+}
+
+.login-submit-btn {
+  background: var(--accent-color);
+  /* 📍 index.css의 [data-theme] 규칙과 충돌하지 않도록 설정 유지 */
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  padding: 14px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 10px;
+}
+
+.login-submit-btn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-2px);
+  /* 📍 테마 대응: 그림자 색상도 포인트 컬러에 맞춰 투명하게 조절 */
+  box-shadow: 0 5px 15px
+    color-mix(in srgb, var(--accent-color), transparent 70%);
+}
+
+.login-submit-btn:active {
+  transform: translateY(0);
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
