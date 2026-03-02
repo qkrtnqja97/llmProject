@@ -28,6 +28,7 @@ def inject_memory_to_question(question: str, memory: dict) -> str:
 
     return q
 
+
 async def run_memory_pipeline():
 
     print("\n🚀 Pipeline 테스트 (Memory 포함)\n")

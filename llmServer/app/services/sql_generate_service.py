@@ -3,6 +3,10 @@
 import re
 import logging
 from typing import Dict
+from app.services.llm_service import LLMService
+from app.services.retry_strategy_service import RetryStrategyService
+from app.services.rag_service import RAGService
+from app.core.metadata_bundle import MetadataBundle
 
 logger = logging.getLogger(__name__)
 
@@ -11,17 +15,15 @@ class SQLGenerateService:
 
     def __init__(
         self,
-        llm_service,
-        retry_service,
-        rag_service,
-        schema_provider,
-        data_stats_provider,
+        llm_service: LLMService,
+        retry_service: RetryStrategyService,
+        rag_service: RAGService,
+        metadata_bundle: MetadataBundle,
     ):
         self.llm_service = llm_service
         self.retry_service = retry_service
         self.rag_service = rag_service
-        self.schema_provider = schema_provider
-        self.data_stats_provider = data_stats_provider
+        self.metadata_bundle = metadata_bundle
 
     # ─────────────────────────────
     # 메인 실행
@@ -60,8 +62,9 @@ class SQLGenerateService:
         )
 
         # 3️⃣ 스키마 + 데이터 기간
-        schema_ctx = self.schema_provider.get_schema()
-        min_date, max_date = self.data_stats_provider.get_range()
+        schema_ctx = self.metadata_bundle.schema_context
+        min_date = self.metadata_bundle.data_stats.get("min_date")
+        max_date = self.metadata_bundle.data_stats.get("max_date")
 
         # 4️⃣ 프롬프트 구성
         user_prompt = self._build_user_prompt(
@@ -83,10 +86,7 @@ class SQLGenerateService:
         # 7️⃣ SQL 기본 검증 (안전장치)
         if not self._is_valid_select(sql):
             logger.warning("⚠️ 유효하지 않은 SQL 반환")
-            return {
-                "sql_query": "",
-                "error": "invalid_sql_generated"
-            }
+            return {"sql_query": "", "error": "invalid_sql_generated"}
 
         logger.info(f"\n📌 생성된 SQL:\n{sql}")
 
@@ -139,14 +139,10 @@ class SQLGenerateService:
             return ""
 
         # ANSI escape 제거
-        raw = re.sub(r'\x1b\[[0-9;]*[mGKHF]', '', raw)
+        raw = re.sub(r"\x1b\[[0-9;]*[mGKHF]", "", raw)
 
         # 코드블럭 추출
-        match = re.search(
-            r'```(?:sql)?\s*(.*?)\s*```',
-            raw,
-            re.IGNORECASE | re.DOTALL
-        )
+        match = re.search(r"```(?:sql)?\s*(.*?)\s*```", raw, re.IGNORECASE | re.DOTALL)
 
         if match:
             sql = match.group(1).strip()

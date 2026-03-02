@@ -15,9 +15,12 @@ from app.services.memory_service import MemoryService
 from app.services.retrieval.engine import RetrievalEngine
 from app.services.retrieval.bm25 import BM25Index
 from app.services.retrieval.fewshot_manager import FewshotManager
+from app.services.sql_generate_service import SQLGenerateService
+from app.services.retry_strategy_service import RetryStrategyService
 
 from app.core.config import settings
 from app.core.metadata_bundle import MetadataBundle
+
 
 class ServiceContainer:
 
@@ -40,26 +43,37 @@ class ServiceContainer:
             prompt_registry=prompt_registry,
         )
 
-        self.rerank_service = RerankService(
-            reranker=_reranker_provider
+        self.rerank_service = RerankService(reranker=_reranker_provider)
+
+        self.retrival_engine = RetrievalEngine(
+            vector_repository=vector_repository,
+            rerank_service=self.rerank_service,
         )
 
-        self.router_service = RouterService(
-            llm_service=self.llm_service
-        )
+        self.router_service = RouterService(llm_service=self.llm_service)
 
-        self.memory_service = MemoryService(conversation_repository=conversation_repository)
+        self.retry_strategy_service = RetryStrategyService(metadata_bundle.column_map)
+
+        self.rag_service = RAGService(retrieval_engine=self.retrival_engine)
+
+        self.memory_service = MemoryService(
+            conversation_repository=conversation_repository
+        )
 
         self.entity_service = EntityResolverService(
             entity_cache=metadata_bundle.entity_cache,
             vector_repository=vector_repository,
             reranker=self.rerank_service,
         )
-        
-        
-        
-        
-         # ─────────────────────────────
+
+        self.sql_generate_service = SQLGenerateService(
+            llm_service=self.llm_service,
+            retry_service=self.retry_strategy_service,
+            rag_service=self.rag_service,
+            metadata_bundle=metadata_bundle,
+        )
+
+        # ─────────────────────────────
         # 🔥 RAG Stack
         # ─────────────────────────────
 
@@ -77,9 +91,7 @@ class ServiceContainer:
         )
 
         # 3️⃣ RAG Service
-        self.rag_service = RAGService(
-            retrieval_engine=self.retrieval_engine
-        )
+        self.rag_service = RAGService(retrieval_engine=self.retrieval_engine)
 
         # 4️⃣ Fewshot Self-Learning
         self.fewshot_manager = FewshotManager(
