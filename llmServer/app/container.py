@@ -19,6 +19,8 @@ from app.services.retrieval.fewshot_manager import FewshotManager
 from app.services.sql_generate_service import SQLGenerateService
 from app.services.retry_strategy_service import RetryStrategyService
 from app.services.execute_db_service import ExecuteDBService
+from app.services.result_validation_service import ResultValidationService
+from app.services.answer_service import AnswerService
 
 from app.core.config import settings
 from app.core.metadata_bundle import MetadataBundle
@@ -82,6 +84,10 @@ class ServiceContainer:
             valid_joins=metadata_bundle.valid_joins,
             db_schema=settings.POSTGRES_SCHEMA,
         )
+
+        self.result_validation_service = ResultValidationService()
+
+        self.answer_service = AnswerService(llm_service=self.llm_service)
 
         # ─────────────────────────────
         # 🔥 RAG Stack

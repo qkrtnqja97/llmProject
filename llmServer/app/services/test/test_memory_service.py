@@ -31,6 +31,7 @@ def inject_memory_to_question(question: str, memory: dict) -> str:
 
     return q
 
+
 async def run_memory_full_test():
 
     print("\n🚀 MemoryService 통합 런타임 테스트 시작\n")
@@ -57,9 +58,7 @@ async def run_memory_full_test():
         session_id=session_id,
         question="2024년 월별 매출액은?",
         refined_question="2024년 월별 총 매출액을 조회하세요",
-        response_data={
-            "answer": "2024년 월별 매출 데이터입니다."
-        },
+        response_data={"answer": "2024년 월별 매출 데이터입니다."},
         final_sql="SELECT EXTRACT(YEAR FROM sale_date)=2024 FROM sales",
         entity_corrections={},
         execution_time_ms=100,
@@ -100,9 +99,7 @@ async def run_memory_full_test():
         session_id=session_id,
         question="ABC123 제품 매출은?",
         refined_question="ABC123 제품의 매출을 조회하세요",
-        response_data={
-            "answer": "ABC123 제품의 매출은 120000원입니다."
-        },
+        response_data={"answer": "ABC123 제품의 매출은 120000원입니다."},
         final_sql="SELECT * FROM sales WHERE part_number='ABC123'",
         entity_corrections={},
         execution_time_ms=100,

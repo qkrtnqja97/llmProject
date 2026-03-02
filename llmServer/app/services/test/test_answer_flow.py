@@ -1,5 +1,5 @@
-# llmServer/app/services/test/test_execute_db_flow.py
-# PYTHONPATH=. python -m app.services.test.test_execute_db_flow
+# llmServer/app/services/test/test_result_validation_flow.py
+# PYTHONPATH=. python -m app.services.test.test_result_validation_flow
 
 import asyncio
 from app.dependency import get_container
@@ -32,7 +32,7 @@ def inject_memory_to_question(question: str, memory: dict) -> str:
 
 async def run_memory_pipeline():
 
-    print("\n🚀 Pipeline 테스트 (Memory + SQLGen + ExecuteDB 전체)\n")
+    print("\n🚀 Pipeline 테스트 (Memory + SQLGen + ExecuteDB + ResultValidate 전체)\n")
 
     tunnel = CloudflareTunnel(
         hostname=settings.CLOUDFLARE_HOSTNAME,
@@ -93,7 +93,17 @@ async def run_memory_pipeline():
     for k, v in db_result.items():
         print(f"  {k}: {v}")
 
-    print("\n🎉 Memory + SQLGen + execute_db 파이프라인 테스트 완료\n")
+    # 6️⃣ 결과 검증
+    validation_result = container.result_validation_service.validate(db_result)
+    print("\n🔍 결과 검증 결과:")
+    for anomaly in validation_result["result_anomalies"]:
+        print(f"  ⚠️ {anomaly}")
+
+    container.answer_service.generate(
+        state=state, db_result=db_result, validation_result=validation_result
+    )
+
+    print("\n🎉 Memory + SQLGen + ExecuteDB + ResultValidate 파이프라인 테스트 완료\n")
 
 
 if __name__ == "__main__":

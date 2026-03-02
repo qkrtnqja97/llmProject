@@ -25,6 +25,7 @@ class LLMService:
         self.router_model = settings.router_model
         self.sql_model = settings.sql_model
         self.answer_model = settings.answer_model
+        self.chitchat_model = settings.chitchat_model
 
     # ==========================================================
     # 🔹 Public Use-case APIs
@@ -52,6 +53,14 @@ class LLMService:
             model_name=self.answer_model,
             system_prompt=self.prompt_registry.get_answer_prompt(),
             log_tag=LogTag.ANSWER,
+        )
+
+    async def generate_answer_chitchat(self, prompt: str) -> str:
+        return await self._generate_internal(
+            prompt=prompt,
+            model_name=self.chitchat_model,
+            system_prompt=self.prompt_registry.get_chitchat_prompt(),
+            log_tag=LogTag.CHIT_CHAT,
         )
 
     # ==========================================================

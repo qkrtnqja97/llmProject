@@ -73,7 +73,7 @@ class ExecuteDBService:
         valid, reason, strategy = self._validate_static(sql)
         if not valid:
             # 디버깅용
-            print("Static validation failed:", reason)
+            # print("Static validation failed:", reason)
             return self._retry(reason, error_history, retry_count, strategy, "static")
 
         # 3️⃣ LIMIT PROTECTION
@@ -84,7 +84,7 @@ class ExecuteDBService:
             rows = await self.rdb_repository.fetch(safe_sql)
 
             explain_meta = self._build_explain_meta(sql, rows)
-
+            print("쿼리 실행 메타:", explain_meta)
             return {
                 "rows": rows,
                 "db_result": "SUCCESS",
@@ -330,16 +330,32 @@ class ExecuteDBService:
 
     def _build_explain_meta(self, sql: str, rows) -> dict:
 
-        tables_used = list(
-            set(
-                re.findall(
-                    r"(?:FROM|JOIN)\s+([a-zA-Z_][a-zA-Z0-9_]*)",
-                    sql,
-                    re.IGNORECASE,
-                )
-            )
+        # 1️⃣ EXTRACT 내부 제거 (FROM sale_date 같은 오탐 방지)
+        clean_sql = re.sub(
+            r"EXTRACT\s*\([^)]+\)",
+            "",
+            sql,
+            flags=re.IGNORECASE,
         )
 
+        # 2️⃣ schema.table 구조까지 잡도록 수정
+        tables_raw = re.findall(
+            r"\b(?:FROM|JOIN)\s+([a-zA-Z_][a-zA-Z0-9_.]*)",
+            clean_sql,
+            re.IGNORECASE,
+        )
+
+        # 3️⃣ 실제 존재하는 테이블만 필터링
+        tables_used = []
+
+        for t in tables_raw:
+            table_name = t.split(".")[-1]  # schema 제거
+            if table_name.lower() in self.COLUMN_MAP:
+                tables_used.append(table_name)
+
+        tables_used = list(set(tables_used))
+
+        # 집계 추출
         aggs = re.findall(
             r"(SUM|AVG|COUNT|MAX|MIN)\s*\(([^)]+)\)",
             sql,
