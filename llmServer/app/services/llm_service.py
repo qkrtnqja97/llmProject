@@ -1,44 +1,122 @@
 # llmServer/app/services/llm_service.py
 
+import logging
+import time
+from typing import List
+
 from app.providers.registry import ProviderRegistry
+from app.prompts.registry import PromptRegistry
 from app.schemas.chat import ChatMessage
 from app.core.config import settings
+from app.core.logging.logging_tags import LogTag
+from app.core.logging.request_context import get_request_id
+
+
+logger = logging.getLogger(__name__)
 
 
 class LLMService:
 
-    def __init__(self, registry: ProviderRegistry):
-        self.registry = registry
-        # 🔥 기본 모델 지정 (사용자 선택 없음, 내부에서 관리)
-        self.default_model_name = "gemini-2.5-flash"
+    def __init__(self, llm_registry: ProviderRegistry, prompt_registry: PromptRegistry):
+        self.llm_registry = llm_registry
+        self.prompt_registry = prompt_registry
 
-    async def generate(self, prompt: str) -> str:
-        """
-        프론트에서 받은 prompt를 바탕으로 LLM에게 요청
-        - 메시지 리스트는 내부에서 system/user로 구성
-        - 모델은 default_model_name 사용
-        """
-        # 1️⃣ provider 선택
-        provider = self._select_provider(prompt)
+        # 모델 이름은 config에서 가져온다
+        self.router_model = settings.router_model
+        self.sql_model = settings.sql_model
+        self.answer_model = settings.answer_model
+        self.chitchat_model = settings.chitchat_model
 
-        # 2️⃣ 메시지 생성 (system + user)
-        messages = [
-            ChatMessage(
-                role="system",
-                content=settings.DEFAULT_SYSTEM_PROMPT,
-            ),
-            ChatMessage(
-                role="user",
-                content=prompt,
-            ),
-        ]
+    # ==========================================================
+    # 🔹 Public Use-case APIs
+    # ==========================================================
 
-        # 3️⃣ generate 호출
-        return await provider.generate(messages)
+    async def generate_router(self, prompt: str) -> str:
+        return await self._generate_internal(
+            prompt=prompt,
+            model_name=self.router_model,
+            system_prompt=self.prompt_registry.get_router_prompt(),
+            log_tag=LogTag.ROUTER,
+        )
 
-    def _select_provider(self, prompt: str):
-        """
-        🔥 현재는 기본 모델만 사용
-        - 추후 프롬프트 분석해서 모델 선택 로직 확장 가능
-        """
-        return self.registry.get_llm(self.default_model_name)
+    async def generate_sql(self, prompt: str) -> str:
+        return await self._generate_internal(
+            prompt=prompt,
+            model_name=self.sql_model,
+            system_prompt=self.prompt_registry.get_sql_prompt(),
+            log_tag=LogTag.SQL_GENERATION,
+        )
+
+    async def generate_answer(self, prompt: str) -> str:
+        return await self._generate_internal(
+            prompt=prompt,
+            model_name=self.answer_model,
+            system_prompt=self.prompt_registry.get_answer_prompt(),
+            log_tag=LogTag.ANSWER,
+        )
+
+    async def generate_answer_chitchat(self, prompt: str) -> str:
+        return await self._generate_internal(
+            prompt=prompt,
+            model_name=self.chitchat_model,
+            system_prompt=self.prompt_registry.get_chitchat_prompt(),
+            log_tag=LogTag.CHIT_CHAT,
+        )
+
+    # ==========================================================
+    # 🔹 Core LLM Call
+    # ==========================================================
+
+    async def _generate_internal(
+        self,
+        prompt: str,
+        model_name: str,
+        system_prompt: str,
+        log_tag: str,
+    ) -> str:
+
+        request_id = get_request_id()
+
+        logger.info(
+            "LLM generate start",
+            extra={
+                "tag": log_tag,
+                "request_id": request_id,
+                "model": model_name,
+                "prompt_length": len(prompt),
+            },
+        )
+
+        start = time.time()
+
+        try:
+            provider = self.llm_registry.get_llm(model_name)
+
+            messages: List[ChatMessage] = [
+                ChatMessage(role="system", content=system_prompt),
+                ChatMessage(role="user", content=prompt),
+            ]
+            # 디버깅용 
+            # print("🔥 LLM 실제 호출 직전")
+
+            response_text = await provider.generate(messages)
+
+            # 디버깅용
+            # print("🔥 LLM 실제 호출 완료")
+
+        except Exception as e:
+            print("💥 LLM 내부 예외 발생:", repr(e))
+            raise  # 🔥 반드시 다시 던져라 (RouterService로 전파)
+
+        latency_ms = int((time.time() - start) * 1000)
+
+        logger.info(
+            "LLM generate success",
+            extra={
+                "tag": log_tag,
+                "request_id": request_id,
+                "latency_ms": latency_ms,
+            },
+        )
+
+        return response_text

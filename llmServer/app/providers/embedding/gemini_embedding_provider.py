@@ -1,5 +1,6 @@
 # llmServer/app/provider/embedding/gemini_embedding_provider.py
 
+import asyncio
 from google import genai
 from typing import List
 from app.providers.embedding.base import BaseEmbeddingProvider
@@ -13,9 +14,14 @@ class GeminiEmbeddingProvider(BaseEmbeddingProvider):
 
     async def embed(self, texts: List[str]) -> List[List[float]]:
 
-        response = self.client.models.embed_content(
-            model=self.model_name,
-            contents=texts,
+        loop = asyncio.get_running_loop()
+
+        response = await loop.run_in_executor(
+            None,
+            lambda: self.client.models.embed_content(
+                model=self.model_name,
+                contents=texts,
+            )
         )
 
-        return response.embeddings
+        return [emb.values for emb in response.embeddings]

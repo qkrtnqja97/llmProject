@@ -90,3 +90,6 @@ models/
 checkpoints/
 
 frontend_copy/
+
+## 개인 설정
+pyproject.toml
