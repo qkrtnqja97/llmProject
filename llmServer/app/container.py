@@ -8,7 +8,6 @@ from app.infra.database.conversation_repository import ConversationRepository
 
 from app.services.entity_service import EntityResolverService
 from app.services.router_service import RouterService
-from app.services.memory_service import MemoryService
 from app.services.llm_service import LLMService
 from app.services.rerank_service import RerankService
 from app.services.rag_service import RAGService
@@ -42,7 +41,7 @@ class ServiceContainer:
         # 🔹 Provider 기반 객체 생성
         _reranker_provider = provider_registry.get_reranker(settings.COHERE_MODEL)
         self.conversation_repository = conversation_repository
-
+      
         # 🔹 Application Services
         self.llm_service = LLMService(
             llm_registry=provider_registry,

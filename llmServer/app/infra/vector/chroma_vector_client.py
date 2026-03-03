@@ -6,6 +6,7 @@ from typing import List, Tuple
 from app.core.config import settings
 from app.infra.vector.base import BaseVectorClient
 from app.providers.embedding.base import BaseEmbeddingProvider
+from app.infra.vector.exceptions import VectorCollectionNotFound
 
 
 class ChromaVectorClient(BaseVectorClient):
@@ -32,7 +33,7 @@ class ChromaVectorClient(BaseVectorClient):
         loop = asyncio.get_running_loop()
 
         def _search():
-            collection = self.client.get_or_create_collection(collection_name)
+            collection = self._get_collection(collection_name)
 
             result = collection.query(
                 query_embeddings=[query_embedding],
@@ -78,7 +79,7 @@ class ChromaVectorClient(BaseVectorClient):
         loop = asyncio.get_running_loop()
 
         def _insert():
-            collection = self.client.get_or_create_collection(collection_name)
+            collection = self._get_collection(collection_name)
 
             collection.add(
                 ids=ids,
@@ -95,7 +96,7 @@ class ChromaVectorClient(BaseVectorClient):
         loop = asyncio.get_running_loop()
 
         def _get():
-            collection = self.client.get_or_create_collection(collection_name)
+            collection = self._get_collection(collection_name)
             return collection.get()
 
         return await loop.run_in_executor(None, _get)
@@ -106,7 +107,7 @@ class ChromaVectorClient(BaseVectorClient):
         loop = asyncio.get_running_loop()
 
         def _count():
-            collection = self.client.get_or_create_collection(collection_name)
+            collection = self._get_collection(collection_name)
             return collection.count()
 
         return await loop.run_in_executor(None, _count)
@@ -117,8 +118,16 @@ class ChromaVectorClient(BaseVectorClient):
         loop = asyncio.get_running_loop()
 
         def _delete():
-            collection = self.client.get_or_create_collection(collection_name)
+            collection = self._get_collection(collection_name)
             collection.delete(ids=ids)
 
         await loop.run_in_executor(None, _delete)
-    
+        
+    def _get_collection(self, name: str):
+        try:
+            return self.client.get_collection(name)
+        except Exception as e:
+            raise VectorCollectionNotFound(
+                f"Vector collection '{name}' does not exist."
+            ) from e
+        

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class CohereRerankerProvider(BaseRerankerProvider):
 
-    def __init__(self, api_key: str, model_name: str = "rerank-v3.0"):
+    def __init__(self, api_key: str, model_name: str = "rerank-v3.5"):
         self.model_name = model_name
         self.client = cohere.ClientV2(api_key)
         logger.info(f"Cohere Reranker initialized with model: {self.model_name}")

@@ -30,24 +30,19 @@ def test_collection():
     print("\n📂 컬렉션 접근 테스트")
 
     try:
-        col = get_collection("SB_entity_store")
+        col = get_collection("bizterm_store")
         print(f"✅ 컬렉션 접근 성공: {col.name}")
         print(f"현재 데이터 수: {col.count()}")
-        col = get_collection("SB_synonym_store")
+        col = get_collection("fewshot_sql")
         print(f"✅ 컬렉션 접근 성공: {col.name}")
         print(f"현재 데이터 수: {col.count()}")
-        col = get_collection("SB_bizterm_store")
+        col = get_collection("entity_store")
         print(f"✅ 컬렉션 접근 성공: {col.name}")
         print(f"현재 데이터 수: {col.count()}")
-        col = get_collection("SB_schema_store")
+        col = get_collection("table_schema_store")
         print(f"✅ 컬렉션 접근 성공: {col.name}")
         print(f"현재 데이터 수: {col.count()}")
-        col = get_collection("SB_error_store")
-        print(f"✅ 컬렉션 접근 성공: {col.name}")
-        print(f"현재 데이터 수: {col.count()}")
-        col = get_collection("SB_intent_store")
-        print(f"✅ 컬렉션 접근 성공: {col.name}")
-        print(f"현재 데이터 수: {col.count()}")
+     
     except Exception as e:
         print(f"❌ 컬렉션 접근 실패: {e}")
 

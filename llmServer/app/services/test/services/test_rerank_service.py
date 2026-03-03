@@ -45,13 +45,14 @@ async def main():
     )
 
     # 4️⃣ 테스트 데이터
-    query = "network switch chip"
+    query = "ABC123 제품의 최근 3개월 매출을 알려줘"
 
     docs = [
-        "BCM5650 is a high-performance network switch chip",
-        "Apple is a fruit",
-        "Electronic components distributor company",
-        "Temperature sensor IC",
+        "ABC123 제품의 2022년 연간 매출은 12억원입니다.",
+        "ABC123 제품의 최근 3개월 매출은 3억 2천만원입니다.",
+        "XYZ999 제품의 최근 3개월 매출은 5억원입니다.",
+        "ABC123 제품의 분기별 매출 통계 자료입니다.",
+        "매출 집계 기준 및 회계 처리 방법 설명 문서입니다."
     ]
 
     metas = [{"id": i} for i in range(len(docs))]

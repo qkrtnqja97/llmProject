@@ -125,3 +125,4 @@ async def get_container() -> ServiceContainer:
     await container.bm25_index.build()
 
     return container
+

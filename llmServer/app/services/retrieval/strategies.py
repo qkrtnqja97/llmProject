@@ -1,4 +1,4 @@
-# app/services/retrieval/strategies.py
+# llmServer/app/services/retrieval/strategies.py
 
 class BaseStrategy:
     collection = ""

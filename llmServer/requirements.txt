@@ -13,7 +13,7 @@ charset-normalizer==3.4.4
 chromadb==1.5.2
 click==8.3.1
 cohere==5.20.7
-coloredlogs==15.0.1
+coloredlogs==15.0.1ㅈ
 cryptography==46.0.5
 distro==1.9.0
 dnspython==2.8.0

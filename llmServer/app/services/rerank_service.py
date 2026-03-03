@@ -1,6 +1,5 @@
 # llmServer/services/rerank_service.py
 
-# app/services/rerank_service.py
 import logging
 from typing import List, Dict, Any
 from app.providers.reranker.base import BaseRerankerProvider

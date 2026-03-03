@@ -40,7 +40,7 @@ class ConversationRepository:
         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
         """
 
-        await self.rdb_repository.execute(
+        response = await self.rdb_repository.execute(
             query,
             user_id,
             session_id,
@@ -53,7 +53,7 @@ class ConversationRepository:
             execution_time_ms,
             datetime.utcnow(),
         )
-
+        # print(f"✅ Conversation 저장 완료: {response}")
     # -------------------------------
     # 최근 대화 조회 (Short-term memory)
     # -------------------------------
