@@ -5,7 +5,9 @@ from app.prompts.registry import PromptRegistry
 from app.providers.registry import ProviderRegistry
 
 from app.providers.llm.gemini_llm_provider import GeminiLLMProvider
+from app.providers.llm.azure_openai_llm_provider import AzureOpenAILLMProvider
 from app.providers.embedding.gemini_embedding_provider import GeminiEmbeddingProvider
+from app.providers.embedding.azure_openai_embedding_provider import AzureEmbeddingProvider
 from app.providers.reranker.cohere_provider import CohereRerankerProvider
 
 from app.infra.database.postgre_rdb_client import PostgresRDBClient
@@ -31,18 +33,32 @@ def create_provider_registry() -> ProviderRegistry:
 
     registry.register_llm(
         model_name=settings.LLM_MODEL,
+        # 재미나이
         provider=GeminiLLMProvider(
             api_key=settings.GEMINI_API_KEY,
             model_name=settings.LLM_MODEL,
         ),
+        # provider=AzureOpenAILLMProvider(
+        #     api_key=settings.AZURE_OPENAI_API_KEY,
+        #     azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+        #     api_version=settings.AZURE_OPENAI_API_VERSION,
+        #     deployment_name=settings.AZURE_OPENAI_DEPLOYMENT_NAME,
+        # )
     )
 
     registry.register_embedding(
         model_name=settings.EMBEDDING_MODEL,
-        provider=GeminiEmbeddingProvider(
-            api_key=settings.GEMINI_API_KEY,
-            model_name=settings.EMBEDDING_MODEL,
-        ),
+        # 재미나이
+        # provider=GeminiEmbeddingProvider(
+        #     api_key=settings.GEMINI_API_KEY,
+        #     model_name=settings.EMBEDDING_MODEL,
+        # ),
+        provider=AzureEmbeddingProvider(
+            api_key=settings.AZURE_OPENAI_API_KEY,
+            azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+            api_version=settings.AZURE_OPENAI_API_VERSION,
+            deployment_name=settings.AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME,
+        )
     )
 
     registry.register_reranker(

@@ -131,7 +131,7 @@ class EntityResolverService:
 
         # 파트넘버 벡터 유사도 비교 (top_k 설정 가능. default:3)
         candidates = await self.vector_repository.search_by_text(
-            collection_name="SB_entity_store",
+            collection_name="entity_store",
             query_text=question,
             top_k=self.ENTITY_FETCH_TOP_K,
         )
@@ -221,10 +221,8 @@ class EntityResolverService:
         """
         refined = self._fuzzy_correct(question)
         refined = await self._vector_correct_part_number(refined)
-        synonym_hint = await self._retrieve_synonyms(question)
-        # 아직 메모리 기능은 안넣음 -> 메모리 서비스로 따로 빼기.
-        # refined = self._inject_memory(refined, memory)
-
+        # synonym_hint = await self._retrieve_synonyms(question)
+        synonym_hint = ""
         return {
             "refined_question": refined,
             "synonym_hint": synonym_hint,

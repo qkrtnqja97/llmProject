@@ -34,7 +34,7 @@ async def run_memory_full_test():
         user_id=user_id,
         session_id=session_id,
         question="2024년 월별 매출액은?",
-        refined_question="2024년 월별 총 매출액을 조회하세요",
+        refined_question="2023년도도 그려줘",
         response_data={"answer": "2024년 월별 매출 데이터입니다."},
         final_sql="SELECT EXTRACT(YEAR FROM sale_date)=2024 FROM sales",
         entity_corrections={},

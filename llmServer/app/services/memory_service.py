@@ -39,7 +39,7 @@ class MemoryService:
     - structured_memory: Dict
 
     ============================================================
-    [Graph Input State Fields - Persist 단계]
+    [Graph Input State Fields - Save_conversation 단계]
     - user_id
     - session_id
     - question

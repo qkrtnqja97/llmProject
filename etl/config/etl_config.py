@@ -18,7 +18,12 @@ POSTGRES_CONFIG = {
 EMBEDDING_CONFIG = {
     "provider": os.getenv("EMBEDDING_PROVIDER", "gemini"),
     "embedding_model": os.getenv("EMBEDDING_MODEL"),
-    "api_key": os.getenv("GEMINI_API_KEY")
+    "api_key": os.getenv("GEMINI_API_KEY"),
+    "azure_openai_api_key": os.getenv("AZURE_OPENAI_API_KEY"),
+    "azure_openai_endpoint": os.getenv("AZURE_OPENAI_ENDPOINT"),
+    "azure_openai_api_version": os.getenv("AZURE_OPENAI_API_VERSION"),
+    "azure_openai_embedding_deployment_name": os.getenv("AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME")
+    
 }
 
 CLOUDFLARE_CONFIG = {
@@ -30,3 +35,4 @@ CHROMA_CONFIG = {
     'port': os.getenv("CHROMA_PORT"),
     'ssl': os.getenv("CHROMA_SSL")
 }
+

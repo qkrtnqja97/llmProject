@@ -12,3 +12,10 @@ class LLM_EMBEDDING_Settings(BaseAppSettings):
     sql_model: str = "gemini-2.5-flash"
     answer_model: str = "gemini-2.5-flash"
     chitchat_model: str = "gemini-2.5-flash"
+    
+    AZURE_OPENAI_API_KEY: str
+    AZURE_OPENAI_ENDPOINT: str
+    AZURE_OPENAI_API_VERSION: str
+    AZURE_OPENAI_LLM_DEPLOYMENT_NAME: str
+    AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME: str
+    

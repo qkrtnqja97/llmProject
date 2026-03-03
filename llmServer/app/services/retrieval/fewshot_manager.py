@@ -18,7 +18,7 @@ class FewshotManager:
 
         # 🔹 1️⃣ 유사도 중복 방지
         existing = await self.vector_repository.search_by_text(
-            collection_name="fewshot",
+            collection_name="fewshot_sql",
             query_text=question,
             top_k=1,
         )
@@ -34,7 +34,7 @@ class FewshotManager:
         ).hexdigest()[:10]
 
         # 🔹 3️⃣ 기존 버전 확인
-        data = await self.vector_repository.get_all("fewshot")
+        data = await self.vector_repository.get_all("fewshot_sql")
 
         version = 1
         if data.get("ids"):
@@ -47,7 +47,7 @@ class FewshotManager:
 
         # 🔹 4️⃣ Insert
         await self.vector_repository.insert(
-            collection_name="fewshot",
+            collection_name="fewshot_sql",
             ids=[doc_id],
             embeddings=[embedding],
             documents=[question],
@@ -60,12 +60,11 @@ class FewshotManager:
         )
 
         # 🔹 5️⃣ 200개 유지 정책
-        total = await self.vector_repository.count("fewshot")
+        total = await self.vector_repository.count("fewshot_sql")
 
         if total > 200:
 
-            data = await self.vector_repository.get_all("fewshot")
-
+            data = await self.vector_repository.get_all("fewshot_sql")
             items = list(zip(
                 data["ids"],
                 data["metadatas"],
@@ -81,7 +80,7 @@ class FewshotManager:
             ]
 
             await self.vector_repository.delete(
-                "fewshot",
+                "fewshot_sql",
                 delete_ids
             )
 

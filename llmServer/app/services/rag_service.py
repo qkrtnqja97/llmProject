@@ -4,11 +4,11 @@ import asyncio
 import logging
 from app.services.retrieval.engine import RetrievalEngine
 from app.services.retrieval.strategies import (
-    SynonymStrategy,
+    # SynonymStrategy,
     BiztermStrategy,
-    SchemaStrategy,
-    ErrorStrategy,
-    KeywordStrategy,
+    TableSchemaStrategy,
+    # ErrorStrategy,
+    # KeywordStrategy,
 )
 
 logger = logging.getLogger(__name__)
@@ -65,40 +65,42 @@ class RAGService:
         # 1️⃣ Few-shot
         tasks.append(self.engine.retrieve_fewshot(question))
 
-        # 2️⃣ Synonym
-        if synonym_hint:
-            tasks.append(asyncio.sleep(0, result=synonym_hint))
-        else:
-            tasks.append(
-                self.engine.retrieve(SynonymStrategy(), question)
-            )
+        # 2️⃣ Synonym -> 이건 여기 노드 아님. 전처리할 때 사용할것임.
+        # if synonym_hint:
+        #     tasks.append(asyncio.sleep(0, result=synonym_hint))
+        # else:
+        #     tasks.append(
+        #         self.engine.retrieve(SynonymStrategy(), question)
+        #     )
 
         # 3️⃣ Bizterm
         tasks.append(
             self.engine.retrieve(BiztermStrategy(), question)
         )
 
-        # 4️⃣ Schema
+        # 4️⃣ Table_Schema
         tasks.append(
-            self.engine.retrieve(SchemaStrategy(), question)
+            self.engine.retrieve(TableSchemaStrategy(), question)
         )
 
+        # 1차 준협꺼
         # 5️⃣ Error-based retrieval
-        if last_error:
-            tasks.append(
-                self.engine.retrieve(ErrorStrategy(), last_error)
-            )
-        else:
-            tasks.append(asyncio.sleep(0, result=""))
+        # if last_error:
+        #     tasks.append(
+        #         self.engine.retrieve(ErrorStrategy(), last_error)
+        #     )
+        # else:
+        #     tasks.append(asyncio.sleep(0, result=""))
 
         # 6️⃣ Keyword
-        tasks.append(
-            self.engine.retrieve(KeywordStrategy(), question)
-        )
+        # tasks.append(
+        #     self.engine.retrieve(KeywordStrategy(), question)
+        # )
 
         # 병렬 실행
         results = await asyncio.gather(*tasks, return_exceptions=True)
-
+        # 디버깅용
+        # print("RAG 전략 결과:", results)
         processed = []
 
         for idx, r in enumerate(results):
@@ -112,26 +114,26 @@ class RAGService:
 
         (
             fewshot,
-            synonym,
+            # synonym,
             bizterm,
-            schema,
-            error,
-            keyword,
+            table_schema,
+            # error,
+            # keyword,
         ) = processed
 
         section = ""
 
         if fewshot:
             section += f"\n[유사 질문-SQL 예시]\n{fewshot}"
-        if synonym:
-            section += f"\n[동의어 정보]\n{synonym}"
+        # if synonym:
+        #     section += f"\n[동의어 정보]\n{synonym}"
         if bizterm:
             section += f"\n[비즈니스 용어 정의]\n{bizterm}"
-        if schema:
-            section += f"\n[관련 테이블 스키마]\n{schema}"
-        if error:
-            section += f"\n[에러 해결 힌트]\n{error}"
-        if keyword:
-            section += f"\n[질문 의도 힌트]\n{keyword}"
+        if table_schema:
+            section += f"\n[관련 테이블 스키마]\n{table_schema}"
+        # if error:
+        #     section += f"\n[에러 해결 힌트]\n{error}"
+        # if keyword:
+        #     section += f"\n[질문 의도 힌트]\n{keyword}"
 
         return section.strip()

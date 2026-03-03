@@ -42,8 +42,8 @@ async def main():
     print(question)
     print("========================================\n")
 
-    print("📦 RAG 결과:")
-    print(result if result else "(빈 결과)")
+    # print("📦 RAG 결과:")
+    # print(result if result else "(빈 결과)")
     print("\n========================================")
     print(f"⏱ 실행 시간: {elapsed:.2f}초")
     print("========================================")

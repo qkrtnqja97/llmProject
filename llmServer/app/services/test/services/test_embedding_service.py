@@ -8,6 +8,7 @@ from app.core.logging.logging_config import setup_logging
 from app.core.logging.request_context import generate_request_id, set_request_id
 
 from app.providers.registry import ProviderRegistry
+from app.providers.embedding.azure_openai_embedding_provider import AzureEmbeddingProvider
 from app.providers.embedding.gemini_embedding_provider import GeminiEmbeddingProvider
 from app.services.embedding_service import EmbeddingService
 from app.core.config import settings
@@ -25,10 +26,10 @@ async def main():
 
     registry = ProviderRegistry()
 
-    embedding_provider = GeminiEmbeddingProvider(
-        api_key=settings.GEMINI_API_KEY,
-        model_name=settings.EMBEDDING_MODEL,
-    )
+    embedding_provider = AzureEmbeddingProvider(azure_endpoint=settings.AZURE_OPENAI_ENDPOINT,
+                                                deployment_name=settings.AZURE_OPENAI_EMBEDDING_DEPLOYMENT_NAME,
+                                                api_key=settings.AZURE_OPENAI_API_KEY,
+                                                api_version=settings.AZURE_OPENAI_API_VERSION )
 
     registry.register_embedding(settings.EMBEDDING_MODEL, embedding_provider)
 
