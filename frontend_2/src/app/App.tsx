@@ -11,7 +11,7 @@ const AppContent = () => {
   // 📍 렌더링 전 동기적으로 테마 상태를 한 번 더 체크 (안전장치)
   useLayoutEffect(() => {
     const savedTheme = localStorage.getItem("theme");
-    const validThemes = ["navy", "gray", "forest"];
+    const validThemes = ["navy", "gray", "sand"];
     const themeToApply =
       savedTheme && validThemes.includes(savedTheme) ? savedTheme : "navy";
 
@@ -24,8 +24,7 @@ const AppContent = () => {
       localStorage.setItem("theme", themeToApply);
     }
   }, []);
-
-  if (!isInitialized) return null; // "인증 정보 로딩 중" 문구로 인한 깜빡임 방지를 위해 null 추천
+  if (!isInitialized) return null;
 
   return <RouterProvider router={router} />;
 };

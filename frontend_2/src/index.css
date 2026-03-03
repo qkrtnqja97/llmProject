@@ -45,21 +45,7 @@
   --scrollbar-hover: #a1a1a1;
 }
 
-/* --- 3. 포레스트 (Forest) 테마 --- */
-[data-theme="forest"] {
-  --bg-main: #0b1410;
-  --bg-card: #16241e;
-  --bg-sidebar: #0f1a16;
-  --bg-item: #243b32;
-  --border-color: #2d4a3e;
-  --text-main: #e2f0e9;
-  --text-sub: #8da399;
-  --accent-color: #4caf50;
-  --scrollbar-thumb: #2d4a3e;
-  --scrollbar-hover: #3e6655;
-}
-
-/* --- 4. 샌드 (Sand / Warm Yellow) 테마 (신규) --- */
+/* --- 3. 샌드 (Sand / Warm Yellow) 테마 --- */
 /* 📍 눈이 편안한 베이지와 따뜻한 호박색(Amber)의 조화 */
 [data-theme="sand"] {
   --bg-main: #fcf8f1; /* 연한 아이보리/베이지 */

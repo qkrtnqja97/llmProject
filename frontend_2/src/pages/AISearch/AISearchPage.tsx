@@ -8,7 +8,7 @@ const AISearchPage: React.FC = () => {
     <div className={styles.container}>
       {/* 상단 헤더 영역 */}
       <header className={styles.header}>
-        <h1>🔍 AI 업무검색</h1>
+        <h1> AI 업무검색</h1>
         <p>사내 문서 기반 AI 비서에게 무엇이든 물어보세요.</p>
       </header>
 

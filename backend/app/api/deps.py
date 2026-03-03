@@ -59,6 +59,9 @@ def get_auth_service(user_repo: UserRepository = Depends(get_user_repository)) -
     return AuthService(user_repo)
 def get_user_service(user_repo: UserRepository = Depends(get_user_repository)) -> UserService:
     return UserService(user_repo)
+def get_chat_service(llm_client: LLMClient = Depends(get_llm_client),
+    inventory_repo: InventoryRepository = Depends(get_inventory_repository)) -> ChatService:
+    return ChatService(llm_client, inventory_repo)
 def get_dashboard_service(dashboard_repo: DashboardRepository = Depends(get_dashboard_repository)) -> DashboardService:
     return DashboardService(dashboard_repo)
 def get_work_service(work_repo: WorkRepository = Depends(get_work_repository)) -> WorkService:

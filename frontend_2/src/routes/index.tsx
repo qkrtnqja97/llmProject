@@ -2,15 +2,28 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import MainLayout from "@layouts/MainLayout";
 import HomePage from "@pages/Home/HomePage";
+import AISearchPage from "@pages/AISearch/AISearchPage";
 import Dashboard from "@pages/Dashboard/DashboardPage";
 import ContactPage from "@pages/Contact/ContactPage";
-import TaskCreatePage from "@pages/TaskCreate/TaskCreatePage";
-import AISearchPage from "@pages/AISearch/AISearchPage";
-import ProductManagePage from "@pages/ProductManage/ProductManagePage";
-import InventoryManagePage from "@pages/InventoryManage/InventoryManagePage";
-import WorkLogPage from "@pages/WorkLog/WorkLogPage";
 import ResourcesPage from "@pages/Resource/ResourcePage";
-import MinutesPage from "@pages/Minute/MinutesPage";
+
+import TaskCreatePage from "@pages/work/TaskCreate/TaskCreatePage";
+import WorkLogPage from "@pages/work/WorkLog/WorkLogPage";
+import MinutesPage from "@pages/work/Minute/MinutesPage";
+
+import ProductManagePage from "@pages/manage/ProductManage/ProductManagePage";
+import InventoryManagePage from "@pages/manage/InventoryManage/InventoryManagePage";
+import OrderManagePage from "@pages/manage/OrderManage/OrderManagePage";
+
+import EmployeeManagePage from "@pages/hr/EmployeeManage/EmployeeManagePage";
+import AttendancePage from "@pages/hr/Attendance/AttendancePage";
+
+import VoucherManagePage from "@pages/finance/VoucherManage/VoucherManagePage";
+import SettlementPage from "@pages/finance/Settlement/SettlementPage";
+
+import QuoteManagePage from "@pages/sales/QuoteManage/QuoteManagePage";
+import OrderSo from "@pages/sales/OrderSo/OrderSoPage";
+
 import { PATHS } from "./paths";
 
 const Placeholder = ({ title }: { title: string }) => (
@@ -30,47 +43,27 @@ export const router = createBrowserRouter([
       { path: PATHS.DASHBOARD, element: <Dashboard /> },
 
       // --- 1. 인사/행정 그룹 ---
-      { path: PATHS.HR.EMPLOYEES, element: <Placeholder title="사원 관리" /> },
-      { path: PATHS.HR.ATTENDANCE, element: <Placeholder title="근태 기록" /> },
-      { path: PATHS.HR.PAYROLL, element: <Placeholder title="급여/정산" /> },
+      { path: PATHS.HR.EMPLOYEES, element: <EmployeeManagePage /> },
+      { path: PATHS.HR.ATTENDANCE, element: <AttendancePage /> },
 
       // --- 2. 회계/재무 그룹 ---
       {
         path: PATHS.FINANCE.VOUCHER,
-        element: <Placeholder title="전표 관리" />,
-      },
-      {
-        path: PATHS.FINANCE.TAX,
-        element: <Placeholder title="세금계산서 발행" />,
+        element: <VoucherManagePage />,
       },
       {
         path: PATHS.FINANCE.SETTLEMENT,
-        element: <Placeholder title="결산 보고서" />,
+        element: <SettlementPage />,
       },
 
       // --- 3. 영업/판매 그룹 ---
       {
         path: PATHS.SALES.QUOTE,
-        element: <Placeholder title="부품 견적 관리" />,
+        element: <QuoteManagePage />,
       },
       {
         path: PATHS.SALES.ORDER_SO,
-        element: <Placeholder title="수주(SO) 관리" />,
-      },
-      {
-        path: PATHS.SALES.CUSTOMER,
-        element: <Placeholder title="거래처/CRM" />,
-      },
-
-      // --- 4. 생산/공정 그룹 ---
-      {
-        path: PATHS.PRODUCTION.PLAN,
-        element: <Placeholder title="생산 계획" />,
-      },
-      { path: PATHS.PRODUCTION.BOM, element: <Placeholder title="BOM 관리" /> },
-      {
-        path: PATHS.PRODUCTION.PROCESS,
-        element: <Placeholder title="공정 관리" />,
+        element: <OrderSo />,
       },
 
       // 업무관리 그룹
@@ -82,7 +75,7 @@ export const router = createBrowserRouter([
       { path: PATHS.MANAGE.INVENTORY, element: <InventoryManagePage /> },
       {
         path: PATHS.MANAGE.ORDER,
-        element: <Placeholder title="발주(PO) 관리" />,
+        element: <OrderManagePage />,
       },
       { path: PATHS.MANAGE.PRODUCT, element: <ProductManagePage /> },
 

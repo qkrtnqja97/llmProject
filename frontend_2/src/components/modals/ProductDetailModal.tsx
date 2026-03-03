@@ -29,8 +29,19 @@ const ProductDetailModal = ({ product, onClose }: ProductDetailModalProps) => {
   if (!product) return null;
 
   return (
-    <div className={styles.modalOverlay}>
-      <div className={styles.modalContent}>
+    <div
+      className={styles.modalOverlay}
+      /* 📍 방법 1: Overlay 클릭 시 아무 일도 일어나지 않도록 명시적으로 빈 함수 부여 또는 onClick 제거 */
+      onClick={(e) => {
+        // 만약 상위 요소에서 이벤트를 가로채고 있다면 여기서 막아줍니다.
+        e.preventDefault();
+      }}
+    >
+      <div
+        className={styles.modalContent}
+        onClick={(e) => e.stopPropagation()}
+        onMouseDown={(e) => e.stopPropagation()} // 마우스 누르는 동작도 차단
+      >
         <div className={styles.modalHeader}>
           <h2>제품 상세 정보</h2>
           <button className={styles.closeBtn} onClick={onClose}>

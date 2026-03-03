@@ -8,7 +8,7 @@
       (function () {
         try {
           const savedTheme = localStorage.getItem("theme");
-          const validThemes = ["navy", "gray", "forest"];
+          const validThemes = ["navy", "gray", "sand"];
           const themeToApply =
             savedTheme && validThemes.includes(savedTheme)
               ? savedTheme
@@ -18,7 +18,7 @@
           const bgColors = {
             navy: "#0a192f",
             gray: "#e0e0e0",
-            forest: "#1a1c1a",
+            sand: "#f5f5dc",
           };
           document.documentElement.style.backgroundColor =
             bgColors[themeToApply];

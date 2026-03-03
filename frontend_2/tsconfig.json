@@ -38,6 +38,6 @@
     }
   },
   /* 파일 포함 범위 설정 */
-  "include": ["src", "vite.config.ts", "src/shared/types/declarations.d.ts"],
+  "include": ["src/**/*", "src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"],
   "exclude": ["node_modules"]
 }

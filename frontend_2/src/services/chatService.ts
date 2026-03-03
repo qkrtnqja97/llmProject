@@ -9,7 +9,7 @@ export const chatService = {
     const token = localStorage.getItem("access_token");
 
     const response = await axios.post(
-      `${API_BASE_URL}/search`,
+      `${API_BASE_URL}/chat`,
       { prompt }, // 백엔드 ChatRequest 스키마와 일치
       {
         headers: {

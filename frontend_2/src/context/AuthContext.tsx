@@ -25,10 +25,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [userSettings, setUserSettings] = useState<any>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // --- 테마 적용 로직 통합 관리 (3종 테마 대응) ---
+  // --- 테마 적용 로직 ---
   const applyTheme = (theme: string) => {
-    // 특정 테마(light/dark)로 강제 고정하던 삼항 연산자를 제거하고
-    // 들어온 테마값(navy, gray, forest 등)을 그대로 반영합니다.
     const targetTheme = theme || "navy";
     document.documentElement.setAttribute("data-theme", targetTheme);
     localStorage.setItem("theme", targetTheme);
@@ -40,7 +38,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       console.log("--- 계정 설정 데이터 로드 성공 ---");
       setUserSettings(settings);
 
-      // DB에서 가져온 테마를 즉시 적용 (실시간 반영의 핵심)
       if (settings?.theme) {
         applyTheme(settings.theme);
       }
@@ -52,17 +49,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      // 1. 서비스 접속 시 로컬 스토리지 테마부터 즉시 적용
-      const lastTheme = localStorage.getItem("theme") || "navy";
-      applyTheme(lastTheme);
+      try {
+        // 1. 테마 먼저 적용
+        const lastTheme = localStorage.getItem("theme") || "navy";
+        applyTheme(lastTheme);
 
-      const savedUser = localStorage.getItem("user_id");
-      if (savedUser) {
-        setUser(savedUser);
-        await fetchAndApplySettings();
+        // 2. 저장된 유저 정보 확인
+        const savedUser = localStorage.getItem("user_id");
+        if (savedUser) {
+          setUser(savedUser);
+          // 서버 응답이 없어도 여기서 멈추지 않도록 catch 처리
+          await fetchAndApplySettings().catch((err) => {
+            console.error("초기 설정 로드 실패 (무시하고 진행):", err);
+          });
+        }
+      } catch (error) {
+        console.error("인증 초기화 에러:", error);
+      } finally {
+        // 📍 핵심: 에러가 나더라도 무조건 로딩 상태를 해제함
+        setIsInitialized(true);
       }
-      setIsInitialized(true);
     };
+
     initAuth();
   }, []);
 
@@ -88,21 +96,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUserSettings(null);
       localStorage.removeItem("access_token");
       localStorage.removeItem("user_id");
-
-      // 로그아웃 시에도 마지막 테마 설정을 유지하기 위해 테마 초기화 로직은 제외합니다.
       window.location.href = "/";
     }
   };
 
+  // 📍 [핵심 수정] 기존 설정을 유지하며 새로운 설정만 덮어쓰는 로직
   const updateLocalSettings = (newSettings: any) => {
     setUserSettings((prev: any) => {
-      if (JSON.stringify(prev) === JSON.stringify(newSettings)) {
+      // 1. 기존 값(prev)과 새로운 값(newSettings)을 병합합니다.
+      // 이를 통해 userSettings 내부에 들어있던 관리자 ID, 권한, 부서 정보 등이 유지됩니다.
+      const merged = { ...prev, ...newSettings };
+
+      // 2. 변경사항이 실제로 있을 때만 상태를 업데이트하여 불필요한 리렌더링 방지
+      if (JSON.stringify(prev) === JSON.stringify(merged)) {
         return prev;
       }
-      return newSettings;
+      return merged;
     });
 
-    // 세팅 모달에서 설정값이 바뀔 때(특히 테마) 즉각 HTML 속성을 업데이트합니다.
+    // 테마 설정이 포함된 경우 즉시 브라우저에 반영
     if (newSettings?.theme) {
       applyTheme(newSettings.theme);
     }

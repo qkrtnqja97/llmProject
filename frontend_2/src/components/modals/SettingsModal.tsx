@@ -289,6 +289,22 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   const [menus, setMenus] = useState<RawMenuItem[]>([]);
   const [expandedMenus, setExpandedMenus] = useState<string[]>([]);
 
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener("keydown", handleEsc);
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleEsc);
+    };
+  }, [isOpen, onClose]);
+
   const sensors = DndCore.useSensors(
     DndCore.useSensor(DndCore.PointerSensor, {
       activationConstraint: { distance: 5 },
@@ -417,7 +433,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
   );
 
   return (
-    <div className={styles.overlay} onClick={onClose}>
+    <div className={styles.overlay}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
         <header className={styles.header}>
           <h2>⚙️ 환경 설정</h2>
@@ -454,7 +470,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({
                     {[
                       { id: "navy", label: "심해 모드", icon: "Waves" },
                       { id: "gray", label: "그레이 모드", icon: "Monitor" },
-                      { id: "forest", label: "포레스트 모드", icon: "Leaf" },
                       { id: "sand", label: "샌드 모드", icon: "Sun" },
                     ].map((t) => (
                       <button

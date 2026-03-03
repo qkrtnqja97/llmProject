@@ -41,7 +41,7 @@
   align-items: center;
   gap: 0.6rem;
   background: var(--accent-color);
-  color: #ffffff;
+  color: rgba(0, 0, 0, 0.03);
   border: none;
   padding: 0.8rem 1.4rem;
   border-radius: 12px;
