@@ -1,7 +1,7 @@
 # llmServer/app/agent/nodes/execute_db_node.py
 
 from typing import Dict
-from app.container import ServiceContainer
+from app.container.container import ServiceContainer
 
 
 class ExecuteDBNode:
