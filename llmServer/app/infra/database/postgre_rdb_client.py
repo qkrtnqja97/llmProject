@@ -44,6 +44,13 @@ class PostgresRDBClient(BaseRDBClient):
           
     @asynccontextmanager
     async def transaction(self):
-        async with self.pool.acquire() as conn:
+        # ❌ self.pool.acquire() -> self._pool (언더바 누락 확인 필요)
+        if not self._pool:
+            raise RuntimeError("Pool not initialized")
+            
+        async with self._pool.acquire() as conn:
+            # 이 시점에 BEGIN 명령이 나갑니다.
             async with conn.transaction():
-                yield conn
+                # 사용자는 이 conn을 받아서 여러 작업을 수행합니다.
+                yield conn 
+            # 이 블록을 나가면 자동으로 COMMIT 혹은 ROLLBACK이 나갑니다.

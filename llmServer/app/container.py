@@ -21,6 +21,7 @@ from app.services.retry_strategy_service import RetryStrategyService
 from app.services.execute_db_service import ExecuteDBService
 from app.services.result_validation_service import ResultValidationService
 from app.services.answer_service import AnswerService
+from app.services.retry_decision_service import RetryDecisionService
 
 from app.core.config import settings
 from app.core.metadata_bundle import MetadataBundle
@@ -89,6 +90,8 @@ class ServiceContainer:
 
         self.answer_service = AnswerService(llm_service=self.llm_service)
 
+        self.retry_decision_service = RetryDecisionService()
+        
         # ─────────────────────────────
         # 🔥 RAG Stack
         # ─────────────────────────────

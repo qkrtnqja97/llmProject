@@ -9,10 +9,78 @@ from app.infra.vector.vector_repository import VectorRepository
 
 class EntityResolverService:
     """
-    질문 안의 엔티티를 정제하는 도메인 서비스.
+    ============================================================
+    [Domain Role]
+    질문 내 엔티티 정제 전용 서비스 (Pre-SQL 단계)
     - 제조사 / 판매사 fuzzy 보정
-    - part_number 벡터 보정
-    - 동의어 힌트 추출
+    - part_number 벡터 기반 오타 보정
+    - 동의어 힌트 추출 (SQLGen prompt 강화용)
+
+    이 서비스는 DB 접근 없음.
+    순수 텍스트 정제 & 힌트 생성 전용.
+
+    ============================================================
+    [Graph Input State Fields]
+    - question: str
+
+    (향후 확장 가능)
+    - structured_memory: Optional[dict]  # 현재는 사용 안함
+
+    ============================================================
+    [Graph Output State Fields]
+    - refined_question: str
+        → 오타 보정 + part_number 정제된 질문
+
+    - synonym_hint: str
+        → SQL 생성 프롬프트에 삽입할 동의어 매핑 정보
+        예:
+        "'매출액' → 'revenue' (metric), '판매량' → 'quantity' (metric)"
+
+    ============================================================
+    [Internal Processing Stages]
+
+    1) _fuzzy_correct()
+       - 제조사 / 판매사 문자열 유사도 기반 교정
+       - RapidFuzz 기반
+       - FUZZY_THRESHOLD 이상일 경우 치환
+
+    2) _vector_correct_part_number()
+       - 벡터 검색 (top_k=3)
+       - distance < ENTITY_DISTANCE_THRESHOLD
+       - type == "part_number"
+       - 문자열 2차 검증 후 치환
+
+    3) _retrieve_synonyms()
+       - 벡터 검색 (top_k=10)
+       - reranker 재정렬
+       - score > SYNONYM_RERANK_THRESHOLD
+       - canonical 매핑 힌트 문자열 생성
+
+    ============================================================
+    [Failure Modes]
+
+    - 벡터 검색 실패 → candidates empty → 그냥 통과
+    - reranker 실패 시 예외 발생 가능 (상위에서 처리 필요)
+    - synonym 없음 → 빈 문자열 반환
+
+    이 서비스는 error_type을 설정하지 않음.
+    실패 시에도 question 그대로 반환하는 "Soft-Fail" 설계.
+
+    ============================================================
+    [Graph 위치]
+
+    refine 단계에서 실행됨.
+    Router 이전에 실행.
+
+    Graph Flow:
+        question
+            ↓
+        entity_resolver
+            ↓
+        router
+            ↓
+        sql_gen
+    ============================================================
     """
 
     ENTITY_FETCH_TOP_K = 3
@@ -121,37 +189,36 @@ class EntityResolverService:
                 )
 
         return ", ".join(hints) if hints else ""
-
-    # 아직 메모리 기능은 안넣음
-    # def _inject_memory(self, question: str, memory: dict) -> str:
-    #     if not memory:
-    #         return question
-
-    #     q = question
-
-    #     PRONOUN_MAP = {
-    #         "이 제품": "last_product",
-    #         "해당 제품": "last_product",
-    #         "그 제품": "last_product",
-    #         "이 고객사": "last_vendor",
-    #         "해당 고객사": "last_vendor",
-    #         "이 제조사": "last_manufacturer",
-    #         "해당 제조사": "last_manufacturer",
-    #     }
-
-    #     for pronoun, key in PRONOUN_MAP.items():
-    #         if pronoun in q and memory.get(key):
-    #             q = q.replace(pronoun, f"'{memory[key]}'")
-
-    #     if "같은 기간" in q and memory.get("last_date_range"):
-    #         q += f" (기간조건: {memory['last_date_range']})"
-
-    #     return q
-
+      
     # =========================
     # 외부 호출용 API
     # =========================
     async def resolve(self, question: str) -> dict:
+        """
+        ============================================================
+        [Input]
+        - question: str
+
+        ============================================================
+        [Output Dict Structure]
+        {
+            "refined_question": str,
+            "synonym_hint": str
+        }
+
+        ============================================================
+        [Graph Integration Notes]
+
+        Graph Node에서 호출 시:
+
+            updated_state = state.model_copy(update={
+                "refined_question": result["refined_question"],
+                "synonym_hint": result["synonym_hint"]
+            })
+
+        retry_count / error_history에는 영향 없음.
+        ============================================================
+        """
         refined = self._fuzzy_correct(question)
         refined = await self._vector_correct_part_number(refined)
         synonym_hint = await self._retrieve_synonyms(question)

@@ -96,12 +96,13 @@ class LLMService:
                 ChatMessage(role="system", content=system_prompt),
                 ChatMessage(role="user", content=prompt),
             ]
-
-            print("🔥 LLM 실제 호출 직전")
+            # 디버깅용 
+            # print("🔥 LLM 실제 호출 직전")
 
             response_text = await provider.generate(messages)
 
-            print("🔥 LLM 실제 호출 완료")
+            # 디버깅용
+            # print("🔥 LLM 실제 호출 완료")
 
         except Exception as e:
             print("💥 LLM 내부 예외 발생:", repr(e))

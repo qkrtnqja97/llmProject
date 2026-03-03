@@ -1,22 +1,31 @@
 # llmServer/app/agent/nodes/router_node.py
 
-# from app.agent.graph import AgentState
-
-from app.services.router_service import RouterService
+from typing import Dict
+from app.container import ServiceContainer
 
 
 class RouterNode:
+    """
+    Intent 분류 노드
 
-    def __init__(
-        self,
-        router_service: RouterService,
-    ):
-        self.router_service = router_service
+    역할:
+    - rule 기반 + LLM fallback 라우팅
+    - intent 반환
 
-    async def __call__(self, state: dict):
+    Graph 계약:
+        입력: refined_question
+        출력: {"intent": str}
+    """
 
-        question = state["question"]
+    def __init__(self, container: ServiceContainer):
+        self.router_service = container.router_service
 
-        intent = await self.router_service.route(question)
+    async def __call__(self, state: Dict) -> Dict:
 
-        return {"intent": intent}
+        intent = await self.router_service.route(
+            state["refined_question"]
+        )
+
+        new_state = state.copy()
+        new_state.update({"intent": intent})
+        return new_state

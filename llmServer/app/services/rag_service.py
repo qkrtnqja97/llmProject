@@ -1,6 +1,7 @@
-# app/services/rag_service.py
+# llmServer/app/services/rag_service.py
 
 import asyncio
+import logging
 from app.services.retrieval.engine import RetrievalEngine
 from app.services.retrieval.strategies import (
     SynonymStrategy,
@@ -10,8 +11,44 @@ from app.services.retrieval.strategies import (
     KeywordStrategy,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class RAGService:
+    """
+    ============================================================
+    [Domain Role]
+    SQL 생성 보조 컨텍스트 생성 서비스.
+
+    - Few-shot 예시
+    - 동의어 정보
+    - 비즈니스 용어 정의
+    - 관련 테이블 스키마
+    - 에러 해결 힌트
+    - 질문 의도 힌트
+
+    이 서비스는:
+    - SQL을 생성하지 않음
+    - retry를 수행하지 않음
+    - state를 수정하지 않음
+    - 실패 시 빈 문자열 반환 (Soft-Fail)
+
+    ============================================================
+    [Input]
+    - question: str
+    - synonym_hint: str
+    - last_error: str
+
+    ============================================================
+    [Output]
+    - str (프롬프트 삽입용 RAG 텍스트 블록)
+
+    ============================================================
+    [Failure Policy]
+    - 개별 전략 실패 → 로그 기록 후 빈 문자열 처리
+    - 전체 실패 → 빈 문자열 반환
+    ============================================================
+    """
 
     def __init__(self, retrieval_engine: RetrievalEngine):
         self.engine = retrieval_engine
@@ -25,8 +62,10 @@ class RAGService:
 
         tasks = []
 
+        # 1️⃣ Few-shot
         tasks.append(self.engine.retrieve_fewshot(question))
 
+        # 2️⃣ Synonym
         if synonym_hint:
             tasks.append(asyncio.sleep(0, result=synonym_hint))
         else:
@@ -34,14 +73,17 @@ class RAGService:
                 self.engine.retrieve(SynonymStrategy(), question)
             )
 
+        # 3️⃣ Bizterm
         tasks.append(
             self.engine.retrieve(BiztermStrategy(), question)
         )
 
+        # 4️⃣ Schema
         tasks.append(
             self.engine.retrieve(SchemaStrategy(), question)
         )
 
+        # 5️⃣ Error-based retrieval
         if last_error:
             tasks.append(
                 self.engine.retrieve(ErrorStrategy(), last_error)
@@ -49,16 +91,24 @@ class RAGService:
         else:
             tasks.append(asyncio.sleep(0, result=""))
 
+        # 6️⃣ Keyword
         tasks.append(
             self.engine.retrieve(KeywordStrategy(), question)
         )
 
+        # 병렬 실행
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
-        results = [
-            r if isinstance(r, str) else ""
-            for r in results
-        ]
+        processed = []
+
+        for idx, r in enumerate(results):
+            if isinstance(r, Exception):
+                logger.warning(f"RAG 전략 {idx} 실패: {r}")
+                processed.append("")
+            elif isinstance(r, str):
+                processed.append(r)
+            else:
+                processed.append("")
 
         (
             fewshot,
@@ -67,7 +117,7 @@ class RAGService:
             schema,
             error,
             keyword,
-        ) = results
+        ) = processed
 
         section = ""
 

@@ -10,15 +10,51 @@ logger = logging.getLogger(__name__)
 
 class ResultValidationService:
     """
-    DB 실행 결과 기반 Sanity Check 서비스
+    ============================================================
+    [Domain Role]
+    DB 실행 결과에 대한 비즈니스 기반 Sanity Check 서비스.
 
     역할:
-    - 0건은 재시도하지 않음
-    - NULL 과다 감지
-    - 음수 매출/수익 감지
-    - 비정상 이상값 감지
-    """
+        - NULL 과다 감지
+        - 음수 매출/수익 감지
+        - 극단적 이상값 감지
 
+    ============================================================
+    🔥 Graph에서 관리해야 할 영역
+
+    이 서비스는:
+        ❌ retry 여부 최종 판단하지 않음
+        ❌ max retry 판단하지 않음
+        ❌ 전체 플로우 제어하지 않음
+
+    Graph는:
+        - anomaly 발생 시 retry 여부 결정
+        - retry_count 증가 여부 결정
+        - error_history 통합 관리
+        - 최종 실패 상태 판단
+
+    ============================================================
+    [Input State Fields]
+    - df: pandas.DataFrame
+    - retry_count: int
+    - error_history: List[str]
+
+    ============================================================
+    [Output]
+
+    정상:
+        {
+            "result_anomalies": []
+        }
+
+    이상 발생:
+        {
+            "result_anomalies": List[str]
+        }
+
+    (⚠ retry 관련 필드는 Graph가 관리하도록 향후 분리 예정)
+    ============================================================
+    """
     def validate(self, state: Dict) -> Dict:
 
         df = state.get("df")
