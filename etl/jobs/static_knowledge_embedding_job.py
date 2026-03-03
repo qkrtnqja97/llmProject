@@ -33,10 +33,11 @@ def embed_with_rate_limit(embedder, documents, batch_size=100):
 
         vectors = embedder.embed(batch)
         all_vectors.extend(vectors)
-
-        if i + batch_size < total:
-            print("⏳ 60초 대기 (Rate Limit 보호)")
-            time.sleep(60)
+        
+        # 유료버전
+        # if i + batch_size < total:
+        #     print("⏳ 60초 대기 (Rate Limit 보호)")
+        #     time.sleep(60)
 
     return all_vectors
 

@@ -32,6 +32,6 @@ class GeminiEmbedder(BaseEmbedder):
 
             print(f"✅ 임베딩 배치 완료: {i} ~ {i + len(batch)}")
 
-            time.sleep(30)  # 무료 플랜 보호용
+            #time.sleep(30)  # 무료 플랜 보호용
 
         return all_vectors
