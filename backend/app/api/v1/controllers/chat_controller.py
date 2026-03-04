@@ -15,3 +15,12 @@ class ChatController:
             yield char
             import asyncio
             await asyncio.sleep(0.01)
+            
+    async def chat(self, prompt: str):
+        # 현재는 스트리밍이 아닌 전체 응답을 한 번에 반환하는 방식으로 구현
+        response = await self.service.chat(prompt)
+        return response 
+      
+    async def llm_health_check(self):
+        return await self.service.llm_health_check()  
+      
