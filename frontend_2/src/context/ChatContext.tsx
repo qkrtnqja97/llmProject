@@ -32,14 +32,12 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 현재 시간 포맷팅 함수
   const getNowTime = () =>
     new Date().toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
 
-  // 메시지 추가 함수
   const addMessage = (msg: Message) => {
     const msgWithTime = { ...msg, timestamp: msg.timestamp || getNowTime() };
 
@@ -54,85 +52,100 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // 마지막 어시스턴트 메시지에 텍스트 조각을 추가하는 함수
   const updateLastAssistantMessage = (chunk: string) => {
     setMessages((prev) => {
-      const lastMsg = prev[prev.length - 1];
+      if (prev.length === 0) return prev; // 방어 코드: 메시지가 없으면 중단
+
+      const lastIdx = prev.length - 1;
+      const lastMsg = prev[lastIdx];
+
       if (lastMsg && lastMsg.role === "assistant") {
         const updatedContent = lastMsg.content + chunk;
-        return [...prev.slice(0, -1), { ...lastMsg, content: updatedContent }];
-      } else {
-        return [
-          ...prev,
-          { role: "assistant", content: chunk, timestamp: getNowTime() },
-        ];
+        const newMessages = [...prev];
+        newMessages[lastIdx] = { ...lastMsg, content: updatedContent };
+        return newMessages;
       }
+      return prev;
     });
     setLastAnswer((prev) => prev + chunk);
   };
 
-  // 스트리밍(출력) 중지 함수
   const stopStreaming = () => {
     if (typingIntervalRef.current) {
       clearInterval(typingIntervalRef.current);
       typingIntervalRef.current = null;
 
       setMessages((prev) => {
-        const lastMsg = prev[prev.length - 1];
+        if (prev.length === 0) return prev;
+        const lastIdx = prev.length - 1;
+        const lastMsg = prev[lastIdx];
         if (lastMsg && lastMsg.role === "assistant") {
-          return [...prev.slice(0, -1), { ...lastMsg, isStopped: true }];
+          const newMessages = [...prev];
+          newMessages[lastIdx] = { ...lastMsg, isStopped: true };
+          return newMessages;
         }
         return prev;
       });
     }
   };
 
-  /**
-   * 실제 AI API와 통신하여 메시지를 보내고 타이핑 효과를 구현하는 함수
-   */
   const sendMessage = async (
     prompt: string,
     userId: string,
     onComplete?: () => void,
   ) => {
-    // 1. 기존 동작 중인 타이핑이 있다면 중단
+    // 1. 기존 인터벌 확실히 제거
     if (typingIntervalRef.current) {
       clearInterval(typingIntervalRef.current);
+      typingIntervalRef.current = null;
     }
 
-    // 2. 사용자 메시지 추가
+    // 2. 유저 질문 추가
     addMessage({ role: "user", content: prompt, timestamp: getNowTime() });
 
     try {
-      // 3. 백엔드 API 호출
       const data = await chatService.ask(prompt, userId);
-      const fullResponse = data.response;
 
-      // 4. 어시스턴트 빈 메시지 시작
+      // 3. 데이터 추출 및 문자열 강제 변환 (방어 로직)
+      let fullResponse = "";
+      const rawData = data?.response || data?.data?.response;
+
+      if (typeof rawData === "string") {
+        fullResponse = rawData;
+      } else if (typeof rawData === "object") {
+        fullResponse = JSON.stringify(rawData); // 객체로 오면 문자열로 풀기
+      } else {
+        fullResponse = "응답 데이터 형식이 올바르지 않습니다.";
+      }
+
+      // 4. 빈 어시스턴트 말풍선 생성
       addMessage({ role: "assistant", content: "", timestamp: getNowTime() });
 
-      // 5. 타이핑 효과 시작 (글자별로 출력)
+      // 5. 타이핑 효과 시작
       let index = 0;
       const interval = setInterval(() => {
-        if (index < fullResponse.length) {
+        // fullResponse가 유효하고 index가 범위 내에 있을 때만 실행
+        if (fullResponse && index < fullResponse.length) {
           updateLastAssistantMessage(fullResponse[index]);
           index++;
         } else {
-          if (typingIntervalRef.current) {
-            clearInterval(typingIntervalRef.current);
-            typingIntervalRef.current = null;
-          }
+          // 종료 처리
+          clearInterval(interval);
+          typingIntervalRef.current = null;
           if (onComplete) onComplete();
         }
-      }, 20); // 출력 속도 조절 (20ms)
+      }, 20);
 
       typingIntervalRef.current = interval;
     } catch (error) {
       console.error("Chat API Error:", error);
+      if (typingIntervalRef.current) {
+        clearInterval(typingIntervalRef.current);
+        typingIntervalRef.current = null;
+      }
       addMessage({
         role: "assistant",
-        content:
-          "⚠️ 서버와 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+        content: "⚠️ 서버 통신 오류가 발생했습니다.",
         timestamp: getNowTime(),
       });
       if (onComplete) onComplete();
@@ -145,7 +158,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         messages,
         addMessage,
         updateLastAssistantMessage,
-        sendMessage, // ✅ simulateStreaming 대신 sendMessage 사용
+        sendMessage,
         stopStreaming,
         lastQuestion,
         lastAnswer,

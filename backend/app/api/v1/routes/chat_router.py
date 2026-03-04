@@ -8,6 +8,7 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 @router.post("")
 async def chat(
     request: ChatRequest,
+    # current_user: dict = Depends(get_current_user),
     controller: ChatController = Depends(get_chat_controller),
 ):
     return await controller.chat(
