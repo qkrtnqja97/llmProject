@@ -1,21 +1,203 @@
 /* src/components/chats/ChatPanel.tsx */
 import React, { useState, useRef, useEffect } from "react";
 import { useChat } from "@context/ChatContext";
+import type { ChartInfo } from "@context/ChatContext";
 import { useAuth } from "@context/AuthContext";
 import { User, Bot, Send } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
+  ResponsiveContainer,
+  ComposedChart,
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
-  ResponsiveContainer,
   CartesianGrid,
+  Legend,
 } from "recharts";
 import styles from "./ChatPanel.module.css";
 
+// ─────────────────────────────────────────────
+// 차트 색상 팔레트
+// ─────────────────────────────────────────────
+const COLORS = ["#4f46e5", "#06b6d4", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6"];
+
+// ─────────────────────────────────────────────
+// 숫자 포맷터 (Tooltip용)
+// ─────────────────────────────────────────────
+const formatValue = (value: unknown) => {
+  const n = Number(value);
+  if (isNaN(n)) return String(value);
+  return new Intl.NumberFormat("ko-KR").format(n);
+};
+
+// ─────────────────────────────────────────────
+// 테이블 렌더러
+// ─────────────────────────────────────────────
+const TableView: React.FC<{ data: Record<string, unknown>[] }> = ({ data }) => {
+  if (!data || data.length === 0) return null;
+  const cols = Object.keys(data[0]);
+  return (
+    <div style={{ overflowX: "auto", marginTop: 12 }}>
+      <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+        <thead>
+          <tr>
+            {cols.map((col) => (
+              <th
+                key={col}
+                style={{
+                  padding: "6px 10px",
+                  background: "#f0f0f8",
+                  borderBottom: "1px solid #ddd",
+                  textAlign: "left",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {col}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {data.map((row, i) => (
+            <tr key={i} style={{ background: i % 2 === 0 ? "#fff" : "#fafafa" }}>
+              {cols.map((col) => (
+                <td
+                  key={col}
+                  style={{
+                    padding: "5px 10px",
+                    borderBottom: "1px solid #eee",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {row[col] === null || row[col] === undefined
+                    ? "-"
+                    : typeof row[col] === "number"
+                    ? formatValue(row[col])
+                    : String(row[col])}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// 메인 ChartRenderer
+// ─────────────────────────────────────────────
+const ChartRenderer: React.FC<{ chartInfo: ChartInfo }> = ({ chartInfo }) => {
+  const { type, title, xKey, dataKeys = [], data = [], useSecondaryAxis = false, yAxes = {} } = chartInfo;
+
+  if (type === "none" || !data.length || !xKey) return null;
+
+  if (type === "table") {
+    return (
+      <div style={{ marginTop: 16, padding: "12px 14px", background: "#fff", borderRadius: 8, border: "1px solid #eee" }}>
+        <p style={{ fontSize: 12, fontWeight: "bold", marginBottom: 8, color: "#333" }}>📋 {title || "데이터 테이블"}</p>
+        <TableView data={data} />
+      </div>
+    );
+  }
+
+  const chartHeight = 240;
+
+  // ── Dual Y-Axis (ComposedChart) ──────────────────────────────
+  if (useSecondaryAxis && dataKeys.length > 1) {
+    const primaryKeys = dataKeys.filter((k) => !yAxes[k] || yAxes[k] === "primary");
+    const secondaryKeys = dataKeys.filter((k) => yAxes[k] === "secondary");
+
+    return (
+      <div style={{ marginTop: 16, padding: "12px 14px", background: "#fff", borderRadius: 8, border: "1px solid #eee" }}>
+        <p style={{ fontSize: 12, fontWeight: "bold", marginBottom: 8, color: "#333" }}>📊 {title || "데이터 시각화"}</p>
+        <ResponsiveContainer width="100%" height={chartHeight}>
+          <ComposedChart data={data} margin={{ top: 4, right: 20, left: -10, bottom: 4 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+            <XAxis dataKey={xKey} fontSize={11} tickLine={false} axisLine={false} />
+            <YAxis yAxisId="primary" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatValue} />
+            <YAxis yAxisId="secondary" orientation="right" fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatValue} />
+            <Tooltip
+              contentStyle={{ borderRadius: 8, border: "none", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
+              formatter={(val: unknown, name: string) => [formatValue(val), name]}
+            />
+            <Legend wrapperStyle={{ fontSize: 11 }} />
+            {primaryKeys.map((k, i) =>
+              type === "line" ? (
+                <Line yAxisId="primary" key={k} type="monotone" dataKey={k} stroke={COLORS[i % COLORS.length]} dot={false} strokeWidth={2} />
+              ) : (
+                <Bar yAxisId="primary" key={k} dataKey={k} fill={COLORS[i % COLORS.length]} radius={[3, 3, 0, 0]} barSize={18} />
+              )
+            )}
+            {secondaryKeys.map((k, i) =>
+              type === "line" ? (
+                <Line yAxisId="secondary" key={k} type="monotone" dataKey={k} stroke={COLORS[(primaryKeys.length + i) % COLORS.length]} dot={false} strokeWidth={2} strokeDasharray="4 2" />
+              ) : (
+                <Bar yAxisId="secondary" key={k} dataKey={k} fill={COLORS[(primaryKeys.length + i) % COLORS.length]} radius={[3, 3, 0, 0]} barSize={18} />
+              )
+            )}
+          </ComposedChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
+
+  // ── 꺾은선 차트 (Line) ──────────────────────────────────────
+  if (type === "line") {
+    return (
+      <div style={{ marginTop: 16, padding: "12px 14px", background: "#fff", borderRadius: 8, border: "1px solid #eee" }}>
+        <p style={{ fontSize: 12, fontWeight: "bold", marginBottom: 8, color: "#333" }}>📈 {title || "추이 차트"}</p>
+        <ResponsiveContainer width="100%" height={chartHeight}>
+          <LineChart data={data} margin={{ top: 4, right: 10, left: -10, bottom: 4 }}>
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+            <XAxis dataKey={xKey} fontSize={11} tickLine={false} axisLine={false} />
+            <YAxis fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatValue} />
+            <Tooltip
+              contentStyle={{ borderRadius: 8, border: "none", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
+              formatter={(val: unknown, name: string) => [formatValue(val), name]}
+            />
+            {dataKeys.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} />}
+            {dataKeys.map((k, i) => (
+              <Line key={k} type="monotone" dataKey={k} stroke={COLORS[i % COLORS.length]} dot={false} strokeWidth={2} />
+            ))}
+          </LineChart>
+        </ResponsiveContainer>
+      </div>
+    );
+  }
+
+  // ── 막대 차트 (Bar, 기본) ────────────────────────────────────
+  return (
+    <div style={{ marginTop: 16, padding: "12px 14px", background: "#fff", borderRadius: 8, border: "1px solid #eee" }}>
+      <p style={{ fontSize: 12, fontWeight: "bold", marginBottom: 8, color: "#333" }}>📊 {title || "데이터 시각화"}</p>
+      <ResponsiveContainer width="100%" height={chartHeight}>
+        <BarChart data={data} margin={{ top: 4, right: 10, left: -10, bottom: 4 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
+          <XAxis dataKey={xKey} fontSize={11} tickLine={false} axisLine={false} />
+          <YAxis fontSize={11} tickLine={false} axisLine={false} tickFormatter={formatValue} />
+          <Tooltip
+            cursor={{ fill: "#f5f5ff" }}
+            contentStyle={{ borderRadius: 8, border: "none", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}
+            formatter={(val: unknown, name: string) => [formatValue(val), name]}
+          />
+          {dataKeys.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} />}
+          {dataKeys.map((k, i) => (
+            <Bar key={k} dataKey={k} fill={COLORS[i % COLORS.length]} radius={[3, 3, 0, 0]} barSize={20} />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────
+// ChatPanel 본체
+// ─────────────────────────────────────────────
 const ChatPanel: React.FC = () => {
   const { messages, sendMessage } = useChat();
   const { user, userSettings } = useAuth();
@@ -28,44 +210,6 @@ const ChatPanel: React.FC = () => {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
-
-  /**
-   * 📍 텍스트에서 데이터를 추출하여 차트용 배열로 만드는 함수 (보강됨)
-   */
-  const parseChartData = (content: string) => {
-    const lines = content.split("\n");
-    const chartData: any[] = [];
-
-    // 1. 표 형식 인식: | 1월 | 272,308,310 |
-    const tableRowRegex = /^\|?\s*(\d+월)\s*\|\s*([\d,]+)\s*원?\s*\|?$/;
-    // 2. 리스트 형식 인식: 1월: 272,308,310 (원 단위가 없어도 인식하도록 수정)
-    const listRowRegex = /^[-*•]?\s*(\d+월)[:\s-]+\s*([\d,]+)\s*(?:원)?/;
-
-    lines.forEach((line) => {
-      const trimmedLine = line.trim();
-      const match =
-        trimmedLine.match(tableRowRegex) || trimmedLine.match(listRowRegex);
-
-      if (match) {
-        const name = match[1]; // "1월"
-        // 콤마(,)를 모두 제거하고 순수하게 숫자만 추출
-        const value = parseInt(match[2].replace(/,/g, ""));
-
-        if (!isNaN(value)) {
-          chartData.push({ name, value });
-        }
-      }
-    });
-
-    // 월 순서대로 정렬 (1월 -> 12월)
-    const sortedData = chartData.sort((a, b) => {
-      const aNum = parseInt(a.name);
-      const bNum = parseInt(b.name);
-      return aNum - bNum;
-    });
-
-    return sortedData.length > 0 ? sortedData : null;
-  };
 
   const handleSend = async () => {
     if (!input.trim() || isTyping) return;
@@ -99,9 +243,6 @@ const ChatPanel: React.FC = () => {
         )}
 
         {messages.map((msg, idx) => {
-          const chartData =
-            msg.role === "assistant" ? parseChartData(msg.content) : null;
-
           return (
             <div
               key={idx}
@@ -129,77 +270,9 @@ const ChatPanel: React.FC = () => {
                           {msg.content}
                         </ReactMarkdown>
 
-                        {/* ✅ 차트 데이터가 있으면 그래프 추가 렌더링 */}
-                        {chartData && (
-                          <div
-                            className={styles.chartWrapper}
-                            style={{
-                              width: "100%",
-                              height: 250,
-                              marginTop: 20,
-                              background: "#fff",
-                              padding: "15px 10px 10px 10px",
-                              borderRadius: 8,
-                              border: "1px solid #eee",
-                            }}
-                          >
-                            <p
-                              style={{
-                                fontSize: "12px",
-                                fontWeight: "bold",
-                                marginBottom: "15px",
-                                color: "#333",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "5px",
-                              }}
-                            >
-                              📊 데이터 시각화 리포트
-                            </p>
-                            <ResponsiveContainer width="100%" height="100%">
-                              <BarChart
-                                data={chartData}
-                                margin={{
-                                  top: 5,
-                                  right: 5,
-                                  left: -20,
-                                  bottom: 5,
-                                }}
-                              >
-                                <CartesianGrid
-                                  strokeDasharray="3 3"
-                                  vertical={false}
-                                  stroke="#f0f0f0"
-                                />
-                                <XAxis
-                                  dataKey="name"
-                                  fontSize={11}
-                                  tickLine={false}
-                                  axisLine={false}
-                                />
-                                <YAxis hide />
-                                <Tooltip
-                                  cursor={{ fill: "#f5f5ff" }}
-                                  contentStyle={{
-                                    borderRadius: "8px",
-                                    border: "none",
-                                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                                  }}
-                                  formatter={(value: any) =>
-                                    new Intl.NumberFormat("ko-KR").format(
-                                      Number(value),
-                                    ) + "원"
-                                  }
-                                />
-                                <Bar
-                                  dataKey="value"
-                                  fill="#4f46e5"
-                                  radius={[4, 4, 0, 0]}
-                                  barSize={20}
-                                />
-                              </BarChart>
-                            </ResponsiveContainer>
-                          </div>
+                        {/* ✅ llmServer 시각화 노드가 반환한 chart_info로 차트 렌더링 */}
+                        {msg.chartInfo && msg.chartInfo.type !== "none" && (
+                          <ChartRenderer chartInfo={msg.chartInfo} />
                         )}
                       </div>
                     )}

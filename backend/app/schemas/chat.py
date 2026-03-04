@@ -15,3 +15,6 @@ class ChatResponse(BaseModel):
     retry_count: int
     timings: Dict[str, float]
 
+class SessionClearRequest(BaseModel):
+    session_id: str
+

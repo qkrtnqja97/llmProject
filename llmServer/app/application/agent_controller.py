@@ -24,4 +24,5 @@ class AgentController:
             "sql_query": result.get("sql_query"),
             "retry_count": result.get("retry_count", 0),
             "timings": result.get("_timings", {}),
+            "chart_info": result.get("chart_info"),
         }

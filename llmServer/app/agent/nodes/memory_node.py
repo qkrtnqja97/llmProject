@@ -33,6 +33,7 @@ class MemoryNode:
 
         refined, structured_memory = await self.memory_service.inject_context(
             user_id=state["user_id"],
+            session_id=state["session_id"],
             question=state["question"],
         )
 

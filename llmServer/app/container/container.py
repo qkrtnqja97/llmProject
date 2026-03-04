@@ -5,6 +5,7 @@ from app.providers.registry import ProviderRegistry
 from app.infra.vector.vector_repository import VectorRepository
 from app.infra.database.rdb_repository import RDBRepository
 from app.infra.database.conversation_repository import ConversationRepository
+from app.infra.database.session_cache_repository import SessionCacheRepository
 
 from app.services.entity_service import EntityResolverService
 from app.services.router_service import RouterService
@@ -36,6 +37,7 @@ class ServiceContainer:
         vector_repository: VectorRepository,
         rdb_repository: RDBRepository,
         conversation_repository: ConversationRepository,
+        session_cache_repository: SessionCacheRepository,
         metadata_bundle: MetadataBundle,
     ):
         # 🔹 Provider 기반 객체 생성
@@ -62,7 +64,8 @@ class ServiceContainer:
         self.rag_service = RAGService(retrieval_engine=self.retrival_engine)
 
         self.memory_service = MemoryService(
-            conversation_repository=conversation_repository
+            conversation_repository=conversation_repository,
+            session_cache_repository=session_cache_repository,
         )
 
         self.entity_service = EntityResolverService(

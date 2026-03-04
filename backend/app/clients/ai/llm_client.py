@@ -8,15 +8,15 @@ class LLMClient:
         self.client = http_client
         self.base_url = settings.LLM_SERVER_URL
 
-    async def generate(self, prompt: str):
+    async def generate(self, prompt: str, user_id: str = "guest", session_id: str = "default"):
         target_url = f"{self.base_url}/agent/query"
         try:
             # 📍 timeout을 100초로 대폭 늘려 AI의 답변 생성을 기다려줍니다.
             res = await self.client.post(
                 target_url,
                 json={
-                    "user_id": "test_user", 
-                    "session_id": "test_session", 
+                    "user_id": user_id,
+                    "session_id": session_id,
                     "question": prompt
                 },
                 timeout=100.0  # 기본 5초 -> 100초로 변경
@@ -43,6 +43,17 @@ class LLMClient:
             res = await self.client.get(
                 f"{self.base_url}/health",
                 timeout=3.0,
+            )
+            return res.status_code == 200
+        except Exception:
+            return False
+
+    async def clear_session(self, session_id: str) -> bool:
+        try:
+            res = await self.client.post(
+                f"{self.base_url}/agent/session/clear",
+                json={"session_id": session_id},
+                timeout=5.0,
             )
             return res.status_code == 200
         except Exception:

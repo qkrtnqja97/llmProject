@@ -1,6 +1,6 @@
 # app/graph/agent_state.py
 
-from typing import TypedDict, List, Dict, Any
+from typing import TypedDict, List, Dict, Any, Optional
 
 
 class AgentState(TypedDict, total=False):
@@ -25,11 +25,15 @@ class AgentState(TypedDict, total=False):
 
     # DB 실행
     rows: List[Dict]
+    df: Any                     # pandas.DataFrame (ResultValidation / Visualization 용)
     db_result: str
     explain_meta: Dict
 
     # Validation
     result_anomalies: List[str]
+
+    # 시각화
+    chart_info: Optional[Dict]  # Recharts 호환 차트 메타데이터
 
     # Retry 관련
     retry_count: int

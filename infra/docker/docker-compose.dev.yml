@@ -24,7 +24,7 @@ services:
       context: ../../backend
     container_name: backend
     environment:
-      ML_BASE_URL: http://llm:9000
+      LLM_SERVER_URL: http://llm:9000/v1/llm
     ports:
       - "8000:8000"
     volumes:

@@ -8,6 +8,7 @@ from app.agent.nodes.router_node import RouterNode
 from app.agent.nodes.sql_gen_node import SQLGenNode
 from app.agent.nodes.execute_db_node import ExecuteDBNode
 from app.agent.nodes.result_validation_node import ResultValidationNode
+from app.agent.nodes.visualization_node import VisualizationNode
 from app.agent.nodes.answer_node import AnswerNode
 from app.agent.nodes.save_conversation_node import SaveConversationNode
 from app.agent.nodes.time_node import TimedNode
@@ -29,6 +30,7 @@ def build_graph(container):
     graph.add_node("sql_gen", TimedNode("sql_gen", SQLGenNode(container)))
     graph.add_node("db_exec", TimedNode("db_exec", ExecuteDBNode(container)))
     graph.add_node("validate", TimedNode("validate", ResultValidationNode(container)))
+    graph.add_node("visualize", VisualizationNode())  # 시각화 메타데이터 생성
     graph.add_node("answer", TimedNode("answer", AnswerNode(container)))
     graph.add_node("save_conversation", TimedNode("save_conversation", SaveConversationNode(container)))
 
@@ -117,15 +119,16 @@ def build_graph(container):
         should_retry_result,
         {
             "retry": "sql_gen",
-            "success": "answer",
-            "fail": "answer",
+            "success": "visualize",  # ← 시각화 노드 경유
+            "fail": "visualize",    # ← 실패도 시각화(차트 없음) 후 답변
         },
     )
 
     # -----------------------------------
-    # Answer → Save → END
+    # Visualize → Answer → Save → END
     # -----------------------------------
 
+    graph.add_edge("visualize", "answer")
     graph.add_edge("answer", "save_conversation")
     graph.add_edge("save_conversation", END)
 

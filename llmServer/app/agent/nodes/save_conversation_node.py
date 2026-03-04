@@ -38,6 +38,7 @@ class SaveConversationNode:
           if start_time:
               execution_time_ms = int((time.time() - start_time) * 1000)
 
+          # 1️⃣ DB 로그 저장 (기존 유지)
           await self.memory_service.save_conversation(
               user_id=user_id,
               session_id=session_id,
@@ -48,5 +49,14 @@ class SaveConversationNode:
               entity_corrections={},
               execution_time_ms=execution_time_ms,
           )
+
+          # 2️⃣ 세션 캐시 업데이트 (맥락 기억용 — 최근 3쌍 유지)
+          if session_id:
+              await self.memory_service.update_context_cache(
+                  session_id=session_id,
+                  user_id=user_id,
+                  question=question,
+                  answer=final_answer,
+              )
 
         return state

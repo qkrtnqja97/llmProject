@@ -4,6 +4,7 @@ import re
 import logging
 from typing import Dict, Optional, List
 from app.infra.database.conversation_repository import ConversationRepository
+from app.infra.database.session_cache_repository import SessionCacheRepository
 
 logger = logging.getLogger(__name__)
 
@@ -56,8 +57,15 @@ class MemoryService:
     ============================================================
     """
 
-    def __init__(self, conversation_repository: ConversationRepository):
+    MAX_CACHE_TURNS = 3  # 세션 내 맥락으로 유지할 최대 대화 쌍 수
+
+    def __init__(
+        self,
+        conversation_repository: ConversationRepository,
+        session_cache_repository: SessionCacheRepository,
+    ):
         self.conversation_repository = conversation_repository
+        self.session_cache_repository = session_cache_repository
         
         
     # ==================================================
@@ -71,14 +79,16 @@ class MemoryService:
         )
         return list(reversed(rows))  # 오래된 → 최신
 
-    async def inject_context(self, user_id: str, question: str):
+    async def inject_context(self, user_id: str, session_id: str, question: str):
         """
         [Input]
         - user_id
+        - session_id  ← 세션 캐시 키
         - question
 
         [Processing]
-        1. 최근 대화 조회
+        1. 세션 캐시에서 이번 세션 대화 이력 조회 (최대 3쌍)
+           캐시가 비어있으면 (세션 시작) 빈 컨텍스트로 진행
         2. follow-up 재조립
         3. structured memory 추출
         4. pronoun resolution 적용
@@ -88,7 +98,7 @@ class MemoryService:
         - structured_memory
         """
 
-        recent = await self.load_recent(user_id)
+        recent = await self.session_cache_repository.get(session_id)
 
         rebuilt_q = self._rebuild_followup(question, recent)
 
@@ -222,7 +232,35 @@ class MemoryService:
         return memory
       
     # ==================================================
-    # 2️⃣ Conversation Persistence 영역
+    # 2️⃣ Session Cache 관리 영역
+    # ==================================================
+
+    async def update_context_cache(
+        self,
+        session_id: str,
+        user_id: str,
+        question: str,
+        answer: str,
+    ):
+        """
+        대화 1쌍을 세션 캐시에 추가한다.
+        MAX_CACHE_TURNS 초과 시 가장 오래된 것부터 제거한다.
+        """
+        turns = await self.session_cache_repository.get(session_id)
+        turns.append({
+            "question": question,
+            "response_data": {"final_answer": answer},
+        })
+        if len(turns) > self.MAX_CACHE_TURNS:
+            turns = turns[-self.MAX_CACHE_TURNS:]
+        await self.session_cache_repository.upsert(session_id, user_id, turns)
+
+    async def clear_context_cache(self, session_id: str):
+        """세션 종료 시 캐시를 삭제한다."""
+        await self.session_cache_repository.delete(session_id)
+
+    # ==================================================
+    # 3️⃣ Conversation Persistence 영역
     # ==================================================
 
     async def save_conversation(

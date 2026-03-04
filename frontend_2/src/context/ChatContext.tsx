@@ -1,11 +1,22 @@
 /* src/context/ChatContext.tsx */
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { chatService } from "@services/chatService";
 
-interface Message {
+export interface ChartInfo {
+  type: "bar" | "line" | "table" | "none";
+  title?: string;
+  xKey?: string;
+  dataKeys?: string[];
+  useSecondaryAxis?: boolean;
+  yAxes?: Record<string, "primary" | "secondary">;
+  data?: Record<string, unknown>[];
+}
+
+export interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: string;
+  chartInfo?: ChartInfo;  // llmServer 시각화 노드가 반환한 차트 메타데이터
 }
 
 interface ChatContextType {
@@ -25,6 +36,16 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [lastQuestion, setLastQuestion] = useState("");
   const [lastAnswer, setLastAnswer] = useState("");
+
+  // 앱 종료(탭/창 닫기) 시 세션 캐시 초기화
+  useEffect(() => {
+    const handleUnload = () => {
+      const token = localStorage.getItem("access_token");
+      if (token) chatService.clearSession(token);
+    };
+    window.addEventListener("beforeunload", handleUnload);
+    return () => window.removeEventListener("beforeunload", handleUnload);
+  }, []);
 
   const getNowTime = () =>
     new Date().toLocaleTimeString([], {
@@ -57,6 +78,15 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       // 3. API 호출
       const data = await chatService.ask(prompt, userId);
       console.log("🔍 백엔드 수신 데이터 원본:", data);
+
+      // chart_info 추출 (백엔드 AgentResponse.chart_info)
+      let chartInfo: ChartInfo | undefined;
+      if (data && typeof data === "object") {
+        const rawChart = (data as any).chart_info ?? (data as any).answer?.chart_info;
+        if (rawChart && rawChart.type && rawChart.type !== "none") {
+          chartInfo = rawChart as ChartInfo;
+        }
+      }
 
       // 📍 [중요] [object Object] 방지를 위한 정밀 추출 로직
       let extractedText = "";
@@ -104,6 +134,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
           newMessages[lastIdx] = {
             ...newMessages[lastIdx],
             content: extractedText,
+            chartInfo,           // 시각화 메타데이터 저장
           };
         }
         return newMessages;

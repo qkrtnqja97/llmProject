@@ -16,6 +16,7 @@ from app.infra.database.rdb_metadata_loader import RDBMetaRepository
 from app.infra.vector.chroma_vector_client import ChromaVectorClient
 from app.infra.vector.vector_repository import VectorRepository
 from app.infra.database.conversation_repository import ConversationRepository
+from app.infra.database.session_cache_repository import SessionCacheRepository
 
 from app.prompts.schema_context_builder import SchemaContextBuilder
 from app.prompts.valid_joins import VALID_JOINS
@@ -123,6 +124,8 @@ async def get_container() -> ServiceContainer:
 
     rdb_repository = await create_rdb_repository()
     conversation_repository = ConversationRepository(rdb_repository=rdb_repository)
+    session_cache_repository = SessionCacheRepository(rdb_repository=rdb_repository)
+    await session_cache_repository.ensure_table()
 
     vector_repository = create_vector_repository(embedding_provider=embedding_provider)
 
@@ -134,6 +137,7 @@ async def get_container() -> ServiceContainer:
         vector_repository=vector_repository,
         rdb_repository=rdb_repository,
         conversation_repository=conversation_repository,
+        session_cache_repository=session_cache_repository,
         metadata_bundle=metadata_bundle,
     )
 

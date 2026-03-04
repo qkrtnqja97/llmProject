@@ -19,14 +19,13 @@ class ChatService:
             사용자 질문: {prompt}
             위 데이터를 바탕으로 친절하게 답변해줘.
             """
-            
-            # ✅ 수정: prompt(context_prompt) 하나만 전달
-            return await self.llm_client.generate(context_prompt)
+            return await self.llm_client.generate(context_prompt, user_id=user_id, session_id=session_id)
 
-        # 2. 일반 질문인 경우
-        # ✅ 수정: prompt 하나만 전달
-        return await self.llm_client.generate(prompt)
-      
+        # 2. 일반 질문 쮘리
+        return await self.llm_client.generate(prompt, user_id=user_id, session_id=session_id)
+
+    async def clear_session(self, session_id: str):
+        await self.llm_client.clear_session(session_id)
+
     async def llm_health_check(self):
         return await self.llm_client.health()
-        

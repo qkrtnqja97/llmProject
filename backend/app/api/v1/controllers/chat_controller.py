@@ -21,6 +21,9 @@ class ChatController:
     async def chat(self, user_id: str, session_id: str, prompt: str):
       response = await self.service.chat(user_id, session_id, prompt)
       return response
+
+    async def clear_session(self, session_id: str):
+        await self.service.clear_session(session_id)
       
     async def llm_health_check(self):
         return await self.service.llm_health_check()  

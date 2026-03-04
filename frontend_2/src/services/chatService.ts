@@ -19,4 +19,26 @@ export const chatService = {
     // 백엔드에서 dict로 리턴한 결과는 response.data에 담깁니다.
     return response.data;
   },
+
+  /**
+   * 앱 종료 시 세션 캐시를 비운다.
+   * keepalive fetch를 사용하여 페이지 언로드 시에도 요청이 완료된다.
+   */
+  clearSession(sessionId: string): void {
+    const token = localStorage.getItem("access_token") || "";
+    const baseURL = (apiClient.defaults.baseURL ?? "").replace(/\/$/, "");
+    try {
+      fetch(`${baseURL}/chat/session/clear`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify({ session_id: sessionId }),
+        keepalive: true, // 페이지 언로드 후에도 요청 유지
+      });
+    } catch {
+      console.warn("[SessionCache] clear 실패 - 무시적");
+    }
+  },
 };
