@@ -9,6 +9,7 @@ import React, {
 import * as LucideIcons from "lucide-react";
 import ChatPanel from "./ChatPanel";
 import { useChat } from "@context/ChatContext";
+import { useAuth } from "@context/AuthContext"; // ✅ AuthContext 추가
 import { chatService } from "@services/chatService";
 import styles from "./GlobalChatbot.module.css";
 
@@ -25,6 +26,8 @@ const GlobalChatbot: React.FC<GlobalChatbotProps> = ({
   isSettingsOpen,
 }) => {
   const { lastQuestion, lastAnswer, addMessage } = useChat();
+  const { user, userSettings } = useAuth(); // ✅ 유저 정보 및 설정 가져오기
+
   const [miniInput, setMiniInput] = useState("");
   const [isMiniLoading, setIsMiniLoading] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
@@ -95,6 +98,9 @@ const GlobalChatbot: React.FC<GlobalChatbotProps> = ({
     if (!miniInput.trim() || isMiniLoading) return;
 
     const userPrompt = miniInput;
+    // ✅ 백엔드 user_id 결정: userSettings의 emp_id를 우선하되, 없으면 login 시 저장된 user(id) 사용
+    const userId = (userSettings as any)?.emp_id || user || "guest";
+
     const time = new Date().toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
@@ -107,7 +113,8 @@ const GlobalChatbot: React.FC<GlobalChatbotProps> = ({
     addMessage({ role: "user", content: userPrompt, timestamp: time });
 
     try {
-      const data = await chatService.ask(userPrompt);
+      // ✅ chatService.ask에 prompt와 userId를 모두 전달하여 에러 해결
+      const data = await chatService.ask(userPrompt, userId);
       addMessage({
         role: "assistant",
         content: data.response,
@@ -133,7 +140,6 @@ const GlobalChatbot: React.FC<GlobalChatbotProps> = ({
       >
         <div className={styles.chatHeader}>
           <div className={styles.title}>
-            {/* 📍 currentColor 적용을 위해 color 속성 제거 */}
             <LucideIcons.Bot size={20} className={styles.headerIcon} />
             <span>AI 업무 지원</span>
           </div>
@@ -225,7 +231,6 @@ const GlobalChatbot: React.FC<GlobalChatbotProps> = ({
               setShowPreview(true);
             }}
           >
-            {/* 📍 메인 아이콘은 가독성을 위해 흰색 유지 */}
             <LucideIcons.MessageCircleMore size={30} color="#fff" />
             {!showPreview && (
               <div className={styles.reopenHint}>

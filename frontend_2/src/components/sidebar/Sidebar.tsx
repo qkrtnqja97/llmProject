@@ -22,15 +22,13 @@ interface SidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
   onOpenSettings: () => void;
-  onOpenProfile: () => void;
-  onOpenTranslation: () => void; // 번역기 모달 오픈 프롭
+  onOpenTranslation: () => void;
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed,
   onToggle,
   onOpenSettings,
-  onOpenProfile,
   onOpenTranslation,
 }) => {
   const location = useLocation();
@@ -51,6 +49,7 @@ const Sidebar: React.FC<SidebarProps> = ({
     const userRole = userSettings?.role || "user";
     const userTeam = userSettings?.team || "general";
 
+    // 1. 기본 메뉴 구성 (기본적인 가시성 및 권한 로직 포함)
     const baseMenus: any[] = [
       {
         id: "ai-search",
@@ -90,6 +89,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         path: PATHS.WORK.LOG,
         isVisible: true,
         icon: "FileText",
+        parentId: "group-work",
+      },
+      {
+        id: "memo",
+        label: "회의록",
+        path: PATHS.WORK.MEMO,
+        isVisible: true,
+        icon: "StickyNote",
         parentId: "group-work",
       },
     ];
@@ -240,6 +247,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       },
     );
 
+    // 2. 설정값(configMenus) 파싱
     const rawData = userSettings?.sidebarMenus || userSettings?.menu_config;
     let configMenus: any[] = [];
     if (rawData) {
@@ -251,15 +259,24 @@ const Sidebar: React.FC<SidebarProps> = ({
       }
     }
 
-    let finalMenus = baseMenus;
-    if (configMenus && configMenus.length > 0) {
-      const configIds = configMenus.map((m) => m.id);
-      const newMenus = baseMenus.filter((m) => !configIds.includes(m.id));
-      finalMenus = [...configMenus, ...newMenus];
-    }
+    // 3. 병합 작업: baseMenus를 기준으로 configMenus의 상태(isVisible, parentId 등)만 업데이트
+    // 이 방식은 ID 중복을 방지하고, 코드에 정의된 최신 아이콘을 보장합니다.
+    const mergedMenus = baseMenus.map((baseItem) => {
+      const configItem = configMenus.find((c: any) => c.id === baseItem.id);
+      if (configItem) {
+        return {
+          ...baseItem,
+          ...configItem,
+          icon: baseItem.icon, // 아이콘은 코드에 정의된 것을 무조건 우선함 (Grid 방지)
+          label: baseItem.label, // 라벨 역시 코드 정의 우선
+        };
+      }
+      return baseItem;
+    });
 
+    // 4. 맵 생성 및 트리 구조화
     const menuMap = new Map<string, MenuItem>();
-    const visibleMenus = finalMenus.filter((m: any) => m.isVisible !== false);
+    const visibleMenus = mergedMenus.filter((m: any) => m.isVisible !== false);
 
     visibleMenus.forEach((m) => {
       menuMap.set(m.id, {
@@ -271,11 +288,9 @@ const Sidebar: React.FC<SidebarProps> = ({
     });
 
     const tree: MenuItem[] = [];
-    visibleMenus.forEach((m) => {
-      const item = menuMap.get(m.id);
-      if (!item) return;
-      if (m.parentId && menuMap.has(m.parentId)) {
-        menuMap.get(m.parentId)!.children.push(item);
+    menuMap.forEach((item) => {
+      if (item.parentId && menuMap.has(item.parentId)) {
+        menuMap.get(item.parentId)!.children.push(item);
       } else {
         tree.push(item);
       }
@@ -336,9 +351,7 @@ const Sidebar: React.FC<SidebarProps> = ({
             return (
               <div key={node.id} className={styles.group}>
                 <div
-                  className={`${styles.groupLabel} ${
-                    hasActiveChild ? styles.parentActive : ""
-                  } ${isActive ? styles.active : ""}`}
+                  className={`${styles.groupLabel} ${hasActiveChild ? styles.parentActive : ""} ${isActive ? styles.active : ""}`}
                   onClick={() => toggleGroup(node.id)}
                 >
                   <div className={styles.labelLeft}>
@@ -360,9 +373,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       <Link
                         key={child.id}
                         to={child.path!}
-                        className={`${styles.subMenuItem} ${
-                          checkActive(child.path) ? styles.active : ""
-                        }`}
+                        className={`${styles.subMenuItem} ${checkActive(child.path) ? styles.active : ""}`}
                       >
                         <span className={styles.icon}>
                           {renderIcon(child.icon, 16)}
@@ -406,7 +417,6 @@ const Sidebar: React.FC<SidebarProps> = ({
                 </span>
               </div>
             </div>
-            {/* ✅ 여기를 고쳤습니다: 프로필 버튼 대신 번역기 버튼으로 변경 */}
             <button
               className={styles.userProfileBtn}
               onClick={onOpenTranslation}

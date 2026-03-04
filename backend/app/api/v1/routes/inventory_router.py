@@ -19,7 +19,7 @@ async def get_products(
 async def get_current_inventory(
     search: str = Query("", description="검색어"),
     controller = Depends(get_inventory_controller),
-    # current_user: dict = Depends(get_current_user) # 조회 권한 체크용
+    current_user: dict = Depends(get_current_user) # 조회 권한 체크용
 ):
     return await controller.get_inventory(search)
 

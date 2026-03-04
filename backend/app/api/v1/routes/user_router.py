@@ -9,7 +9,7 @@ router = APIRouter(prefix="/user", tags=["user"])
 
 @router.get("/settings")
 async def get_settings(
-    # current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     controller: UserController = Depends(get_user_controller)
 ):
     return await controller.get_settings(current_user["emp_id"])
@@ -17,7 +17,7 @@ async def get_settings(
 @router.post("/settings", response_model=UserSettingsResponse)
 async def update_settings(
     payload: UserSettingsSchema,
-    # current_user: dict = Depends(get_current_user),
+    current_user: dict = Depends(get_current_user),
     controller: UserController = Depends(get_user_controller)
 ):
     return await controller.update_settings(current_user["emp_id"], payload)

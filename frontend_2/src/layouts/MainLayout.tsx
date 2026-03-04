@@ -86,10 +86,6 @@ const MainLayout: React.FC = () => {
            Sidebar 컴포넌트 인터페이스에 맞춰 onOpenTranslation으로 수정하고,
            onOpenProfile에는 실제 프로필 관련 로직(필요시)을 연결해야 합니다.
         */
-        onOpenProfile={() => {
-          /* 프로필 오픈 로직이 있다면 여기에 작성, 없다면 일단 빈 함수 */
-          console.log("Profile opened");
-        }}
         onOpenTranslation={handleOpenTranslation}
       />
 
