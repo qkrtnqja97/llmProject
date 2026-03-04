@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_BASE_URL = "http://192.168.0.100:8000/v1/dashboard";
+const API_BASE_URL = "http://localhost:8000/v1/dashboard";
 
 // 개별 거래 로그 타입
 export interface TransactionLog {

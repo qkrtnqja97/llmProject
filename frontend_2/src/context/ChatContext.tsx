@@ -1,24 +1,20 @@
 /* src/context/ChatContext.tsx */
-import { createContext, useContext, useState, ReactNode, useRef } from "react";
+import { createContext, useContext, useState, ReactNode } from "react";
 import { chatService } from "@services/chatService";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: string;
-  isStopped?: boolean;
 }
 
 interface ChatContextType {
   messages: Message[];
-  addMessage: (msg: Message) => void;
-  updateLastAssistantMessage: (chunk: string) => void;
   sendMessage: (
     prompt: string,
     userId: string,
     onComplete?: () => void,
   ) => Promise<void>;
-  stopStreaming: () => void;
   lastQuestion: string;
   lastAnswer: string;
 }
@@ -30,8 +26,6 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [lastQuestion, setLastQuestion] = useState("");
   const [lastAnswer, setLastAnswer] = useState("");
 
-  const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
-
   const getNowTime = () =>
     new Date().toLocaleTimeString([], {
       hour: "2-digit",
@@ -40,52 +34,11 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const addMessage = (msg: Message) => {
     const msgWithTime = { ...msg, timestamp: msg.timestamp || getNowTime() };
-
     setMessages((prev) => [...prev, msgWithTime]);
 
     if (msgWithTime.role === "user") {
       setLastQuestion(msgWithTime.content);
       setLastAnswer("");
-    }
-    if (msgWithTime.role === "assistant") {
-      setLastAnswer(msgWithTime.content);
-    }
-  };
-
-  const updateLastAssistantMessage = (chunk: string) => {
-    setMessages((prev) => {
-      if (prev.length === 0) return prev; // 방어 코드: 메시지가 없으면 중단
-
-      const lastIdx = prev.length - 1;
-      const lastMsg = prev[lastIdx];
-
-      if (lastMsg && lastMsg.role === "assistant") {
-        const updatedContent = lastMsg.content + chunk;
-        const newMessages = [...prev];
-        newMessages[lastIdx] = { ...lastMsg, content: updatedContent };
-        return newMessages;
-      }
-      return prev;
-    });
-    setLastAnswer((prev) => prev + chunk);
-  };
-
-  const stopStreaming = () => {
-    if (typingIntervalRef.current) {
-      clearInterval(typingIntervalRef.current);
-      typingIntervalRef.current = null;
-
-      setMessages((prev) => {
-        if (prev.length === 0) return prev;
-        const lastIdx = prev.length - 1;
-        const lastMsg = prev[lastIdx];
-        if (lastMsg && lastMsg.role === "assistant") {
-          const newMessages = [...prev];
-          newMessages[lastIdx] = { ...lastMsg, isStopped: true };
-          return newMessages;
-        }
-        return prev;
-      });
     }
   };
 
@@ -94,60 +47,84 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     userId: string,
     onComplete?: () => void,
   ) => {
-    // 1. 기존 인터벌 확실히 제거
-    if (typingIntervalRef.current) {
-      clearInterval(typingIntervalRef.current);
-      typingIntervalRef.current = null;
-    }
-
-    // 2. 유저 질문 추가
+    // 1. 사용자 질문 즉시 추가
     addMessage({ role: "user", content: prompt, timestamp: getNowTime() });
 
     try {
-      const data = await chatService.ask(prompt, userId);
-
-      // 3. 데이터 추출 및 문자열 강제 변환 (방어 로직)
-      let fullResponse = "";
-      const rawData = data?.response || data?.data?.response;
-
-      if (typeof rawData === "string") {
-        fullResponse = rawData;
-      } else if (typeof rawData === "object") {
-        fullResponse = JSON.stringify(rawData); // 객체로 오면 문자열로 풀기
-      } else {
-        fullResponse = "응답 데이터 형식이 올바르지 않습니다.";
-      }
-
-      // 4. 빈 어시스턴트 말풍선 생성
+      // 2. 로딩용 빈 메시지 추가 (ChatPanel에서 점 3개 로딩바 표시용)
       addMessage({ role: "assistant", content: "", timestamp: getNowTime() });
 
-      // 5. 타이핑 효과 시작
-      let index = 0;
-      const interval = setInterval(() => {
-        // fullResponse가 유효하고 index가 범위 내에 있을 때만 실행
-        if (fullResponse && index < fullResponse.length) {
-          updateLastAssistantMessage(fullResponse[index]);
-          index++;
-        } else {
-          // 종료 처리
-          clearInterval(interval);
-          typingIntervalRef.current = null;
-          if (onComplete) onComplete();
-        }
-      }, 20);
+      // 3. API 호출
+      const data = await chatService.ask(prompt, userId);
+      console.log("🔍 백엔드 수신 데이터 원본:", data);
 
-      typingIntervalRef.current = interval;
-    } catch (error) {
-      console.error("Chat API Error:", error);
-      if (typingIntervalRef.current) {
-        clearInterval(typingIntervalRef.current);
-        typingIntervalRef.current = null;
+      // 📍 [중요] [object Object] 방지를 위한 정밀 추출 로직
+      let extractedText = "";
+
+      if (typeof data === "string") {
+        extractedText = data;
+      } else if (data && typeof data === "object") {
+        // 우선순위에 따라 필드 탐색
+        // 백엔드 구조가 { answer: { final_answer: "..." } } 일 경우까지 대비
+        const possibleContent =
+          data.final_answer ||
+          data.answer?.final_answer ||
+          data.answer ||
+          data.response ||
+          data.data?.final_answer ||
+          data.data?.answer ||
+          data.data;
+
+        if (typeof possibleContent === "string") {
+          extractedText = possibleContent;
+        } else if (
+          typeof possibleContent === "object" &&
+          possibleContent !== null
+        ) {
+          // 찾은 값이 또 객체라면 문자열로 강제 변환 (JSON 형태로 출력)
+          extractedText = JSON.stringify(possibleContent, null, 2);
+        } else {
+          // 아무것도 해당 안 되면 전체 데이터 문자열화
+          extractedText = JSON.stringify(data, null, 2);
+        }
+      } else {
+        extractedText = String(data || "응답이 비어있습니다.");
       }
-      addMessage({
-        role: "assistant",
-        content: "⚠️ 서버 통신 오류가 발생했습니다.",
-        timestamp: getNowTime(),
+
+      // 최종적으로 [object Object] 문구 필터링 (최후의 보루)
+      if (extractedText.includes("[object Object]")) {
+        extractedText = JSON.stringify(data, null, 2);
+      }
+
+      // 4. 마지막 어시스턴트 메시지 업데이트
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        const lastIdx = newMessages.length - 1;
+        if (newMessages[lastIdx] && newMessages[lastIdx].role === "assistant") {
+          newMessages[lastIdx] = {
+            ...newMessages[lastIdx],
+            content: extractedText,
+          };
+        }
+        return newMessages;
       });
+
+      setLastAnswer(extractedText);
+
+      if (onComplete) onComplete();
+    } catch (error: any) {
+      console.error("Chat API Error:", error);
+      const errorMsg = "⚠️ 응답을 가져오는 중 오류가 발생했습니다.";
+
+      setMessages((prev) => {
+        const newMessages = [...prev];
+        const lastIdx = newMessages.length - 1;
+        if (newMessages[lastIdx]?.role === "assistant") {
+          newMessages[lastIdx] = { ...newMessages[lastIdx], content: errorMsg };
+        }
+        return newMessages;
+      });
+      setLastAnswer(errorMsg);
       if (onComplete) onComplete();
     }
   };
@@ -156,10 +133,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     <ChatContext.Provider
       value={{
         messages,
-        addMessage,
-        updateLastAssistantMessage,
         sendMessage,
-        stopStreaming,
         lastQuestion,
         lastAnswer,
       }}
