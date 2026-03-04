@@ -22,12 +22,16 @@ interface SidebarProps {
   isCollapsed: boolean;
   onToggle: () => void;
   onOpenSettings: () => void;
+  onOpenProfile: () => void;
+  onOpenTranslation: () => void; // 번역기 모달 오픈 프롭
 }
 
 const Sidebar: React.FC<SidebarProps> = ({
   isCollapsed,
   onToggle,
   onOpenSettings,
+  onOpenProfile,
+  onOpenTranslation,
 }) => {
   const location = useLocation();
   const { user, logout, userSettings } = useAuth();
@@ -47,7 +51,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     const userRole = userSettings?.role || "user";
     const userTeam = userSettings?.team || "general";
 
-    // 1. 시스템에 정의된 기본 메뉴 (기능 추가 시 여기를 먼저 수정)
     const baseMenus: any[] = [
       {
         id: "ai-search",
@@ -237,7 +240,6 @@ const Sidebar: React.FC<SidebarProps> = ({
       },
     );
 
-    // 2. 서버/사용자 설정 데이터 파싱
     const rawData = userSettings?.sidebarMenus || userSettings?.menu_config;
     let configMenus: any[] = [];
     if (rawData) {
@@ -249,12 +251,9 @@ const Sidebar: React.FC<SidebarProps> = ({
       }
     }
 
-    // 3. 📍 메뉴 병합 로직: 새 기능이 설정 데이터에 없을 경우를 대비하여 병합
     let finalMenus = baseMenus;
     if (configMenus && configMenus.length > 0) {
-      // 설정 데이터에 있는 ID 목록
       const configIds = configMenus.map((m) => m.id);
-      // 설정에 없는 '신규 메뉴'만 추출하여 합침
       const newMenus = baseMenus.filter((m) => !configIds.includes(m.id));
       finalMenus = [...configMenus, ...newMenus];
     }
@@ -266,7 +265,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       menuMap.set(m.id, {
         ...m,
         children: [],
-        icon: m.iconName || "Grid",
+        icon: m.icon || "Grid",
         path: m.path || (m.id.startsWith("/") ? m.id : `/${m.id}`),
       });
     });
@@ -337,7 +336,9 @@ const Sidebar: React.FC<SidebarProps> = ({
             return (
               <div key={node.id} className={styles.group}>
                 <div
-                  className={`${styles.groupLabel} ${hasActiveChild ? styles.parentActive : ""} ${isActive ? styles.active : ""}`}
+                  className={`${styles.groupLabel} ${
+                    hasActiveChild ? styles.parentActive : ""
+                  } ${isActive ? styles.active : ""}`}
                   onClick={() => toggleGroup(node.id)}
                 >
                   <div className={styles.labelLeft}>
@@ -359,7 +360,9 @@ const Sidebar: React.FC<SidebarProps> = ({
                       <Link
                         key={child.id}
                         to={child.path!}
-                        className={`${styles.subMenuItem} ${checkActive(child.path) ? styles.active : ""}`}
+                        className={`${styles.subMenuItem} ${
+                          checkActive(child.path) ? styles.active : ""
+                        }`}
                       >
                         <span className={styles.icon}>
                           {renderIcon(child.icon, 16)}
@@ -390,17 +393,27 @@ const Sidebar: React.FC<SidebarProps> = ({
       <div className={styles.footer}>
         {!isCollapsed && (
           <div className={styles.userInfo}>
-            <div className={styles.userAvatar}>
-              <LucideIcons.User size={18} />
+            <div className={styles.userContent}>
+              <div className={styles.userAvatar}>
+                <LucideIcons.User size={18} />
+              </div>
+              <div className={styles.userText}>
+                <span className={styles.userName}>
+                  {(userSettings as any)?.name || user || "사용자"}
+                </span>
+                <span className={styles.userRole}>
+                  {userSettings?.team || "일반"}
+                </span>
+              </div>
             </div>
-            <div className={styles.userText}>
-              <span className={styles.userName}>
-                {(userSettings as any)?.name || user || "사용자"}
-              </span>
-              <span className={styles.userRole}>
-                {userSettings?.team || "일반"}
-              </span>
-            </div>
+            {/* ✅ 여기를 고쳤습니다: 프로필 버튼 대신 번역기 버튼으로 변경 */}
+            <button
+              className={styles.userProfileBtn}
+              onClick={onOpenTranslation}
+              title="번역기"
+            >
+              <LucideIcons.Languages size={16} />
+            </button>
           </div>
         )}
         <div className={styles.footerActions}>

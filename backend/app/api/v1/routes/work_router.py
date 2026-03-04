@@ -9,7 +9,7 @@ router = APIRouter(prefix="/work", tags=["work"])
 @router.post("/", response_model=TaskResponse)
 async def create_task(
     task_in: TaskCreate,
-    current_user: dict = Depends(get_current_user),
+    # current_user: dict = Depends(get_current_user),
     controller: WorkController = Depends(get_work_controller)
 ):
     return await controller.create_task(current_user["emp_id"], task_in)
@@ -30,7 +30,7 @@ async def get_tasks(
 async def update_task(
     task_id: int,
     task_in: TaskCreate,
-    current_user: dict = Depends(get_current_user), # 📍 추가: 인증 정보 주입
+    # current_user: dict = Depends(get_current_user), # 📍 추가: 인증 정보 주입
     controller: WorkController = Depends(get_work_controller)
 ):
     # 서비스 계층에서 검증할 수 있도록 current_user 전달
@@ -39,7 +39,7 @@ async def update_task(
 @router.delete("/{task_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_task(
     task_id: int,
-    current_user: dict = Depends(get_current_user), # 📍 추가: 인증 정보 주입
+    # current_user: dict = Depends(get_current_user), # 📍 추가: 인증 정보 주입
     controller: WorkController = Depends(get_work_controller)
 ):
     """업무 삭제 엔드포인트"""

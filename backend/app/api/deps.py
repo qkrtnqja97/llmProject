@@ -1,7 +1,7 @@
 # backend/app/api/deps.py
 import httpx
 from fastapi import Depends, Request, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, HTTPBearer
 from jose import jwt, JWTError
 
 # 1. Core & Config
@@ -34,6 +34,7 @@ from app.api.v1.controllers.inventory_controller import InventoryController
 
 # --- 인증 관련 설정 ---
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/v1/auth/login")
+security_scheme = HTTPBearer()
 
 # --- Dependency Injection Functions ---
 
@@ -85,16 +86,22 @@ def get_inventory_controller(inventory_service: InventoryService = Depends(get_i
 
 # --- get_current_user (인증 로직) ---
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    token: str = Depends(security_scheme), 
     user_repo: UserRepository = Depends(get_user_repository)
 ) -> dict:
+    # 객체인 경우 credentials(문자열)를 추출, 아니면 그대로 사용
+    actual_token = token.credentials if hasattr(token, 'credentials') else token
+    
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="인증 정보가 유효하지 않습니다.",
         headers={"WWW-Authenticate": "Bearer"},
     )
+    
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        # 📍 핵심 수정: token 대신 추출한 'actual_token'을 사용해야 합니다!
+        payload = jwt.decode(actual_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        
         emp_id: str = payload.get("sub")
         if emp_id is None:
             raise credentials_exception

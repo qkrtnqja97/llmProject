@@ -7,6 +7,7 @@ import { useAuth } from "@context/AuthContext";
 import { useModal } from "@hooks/useModal";
 import LoginModal from "@components/modals/LoginModal";
 import SettingsModal from "@components/modals/SettingsModal";
+import TranslationModal from "@components/modals/TranslationModal";
 import styles from "./MainLayout.module.css";
 
 const MainLayout: React.FC = () => {
@@ -15,6 +16,7 @@ const MainLayout: React.FC = () => {
 
   // 1. 상태 관리
   const settingsModal = useModal();
+  const translationModal = useModal();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isChatOpen, setIsChatOpen] = useState(true);
 
@@ -51,7 +53,21 @@ const MainLayout: React.FC = () => {
     }
   };
 
-  // 4. 클래스 네임 조합 (CSS Module 대응)
+  // 4. 번역 모달 핸들러
+  const handleOpenTranslation = () => {
+    prevChatState.current = isChatOpen;
+    setIsChatOpen(false);
+    translationModal.open();
+  };
+
+  const handleCloseTranslation = () => {
+    translationModal.close();
+    if (prevChatState.current) {
+      setIsChatOpen(true);
+    }
+  };
+
+  // 5. 클래스 네임 조합 (CSS Module 대응)
   const contentClassName = `
     ${styles.content} 
     ${isCollapsed ? styles.sidebarCollapsed : ""} 
@@ -65,6 +81,16 @@ const MainLayout: React.FC = () => {
         isCollapsed={isCollapsed}
         onToggle={() => setIsCollapsed(!isCollapsed)}
         onOpenSettings={handleOpenSettings}
+        /* 📍 점검 및 수정 사항:
+           기존 onOpenProfile={handleOpenTranslation}으로 잘못 연결된 부분을
+           Sidebar 컴포넌트 인터페이스에 맞춰 onOpenTranslation으로 수정하고,
+           onOpenProfile에는 실제 프로필 관련 로직(필요시)을 연결해야 합니다.
+        */
+        onOpenProfile={() => {
+          /* 프로필 오픈 로직이 있다면 여기에 작성, 없다면 일단 빈 함수 */
+          console.log("Profile opened");
+        }}
+        onOpenTranslation={handleOpenTranslation}
       />
 
       {/* 중앙 메인 콘텐츠 영역 */}
@@ -91,6 +117,12 @@ const MainLayout: React.FC = () => {
         onClose={handleCloseSettings}
         theme={currentTheme}
         setTheme={handleSetTheme}
+      />
+
+      {/* 번역 모달 */}
+      <TranslationModal
+        isOpen={translationModal.isOpen}
+        onClose={handleCloseTranslation}
       />
     </div>
   );

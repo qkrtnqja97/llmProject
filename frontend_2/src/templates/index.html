@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>하이브리드 번역기</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>하이브리드 번역기</h1>
+            <button class="theme-btn" id="themeBtn">라이트 모드</button>
+        </header>
+
+        <div class="tabs">
+            <div class="tab active" data-tab="basic">기본</div>
+            <div class="tab" data-tab="realtime">실시간</div>
+            <div class="tab" data-tab="email">바이어 메일</div>
+            <div class="tab" data-tab="batch">배치</div>
+            <div class="tab" data-tab="file">파일</div>
+            <div class="tab" data-tab="multi">다국어</div>
+        </div>
+
+        <div class="panel active" id="panel-basic">
+            <div class="card usage-card">
+                <div class="usage-title">📖 기본 번역 사용법</div>
+                <ul class="usage-list">
+                    <li>원문·대상 언어를 선택하고 텍스트를 입력한 뒤 <strong>번역하기</strong>를 누르세요.</li>
+                    <li><strong>Ctrl + Enter</strong>로 빠르게 번역할 수 있습니다.</li>
+                    <li>번역 후 <strong>최종 | 기계 번역 | Ollama LLM 보정</strong> 탭으로 결과를 비교해 보세요.</li>
+                    <li>용어집에 전문 용어를 등록하면 번역 시 반영됩니다.</li>
+                    <li><strong>🔊 듣기</strong> 버튼으로 번역 결과를 음성으로 들을 수 있습니다.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="controls">
+                    <div class="control-group"><label>원문</label><select id="sourceLang">{% for c,n in languages.items() %}<option value="{{c}}" {%if c=='ko'%}selected{%endif%}>{{n}}</option>{% endfor %}</select></div>
+                    <div class="control-group"><label>대상</label><select id="targetLang">{% for c,n in languages.items() %}<option value="{{c}}" {%if c=='en'%}selected{%endif%}>{{n}}</option>{% endfor %}</select></div>
+                </div>
+                <div class="toggle-row"><input type="checkbox" id="useLlm" checked><label for="useLlm">Ollama LLM 보정</label></div>
+                <textarea id="inputText" placeholder="번역할 텍스트..."></textarea>
+                <button class="btn" id="translateBtn" style="margin-top:0.75rem">번역하기</button>
+            </div>
+            <div class="card">
+                <div class="result-header">
+                    <span class="card-title">번역 결과</span>
+                    <span id="basicResultBtns" style="display:none">
+                        <button class="btn btn-outline btn-sm" id="ttsBtn" title="음성으로 듣기">🔊 듣기</button>
+                        <button class="btn btn-outline btn-sm" id="copyBtn">복사</button>
+                    </span>
+                </div>
+                <div class="compare-tabs" id="compareTabs" style="display:none">
+                    <button class="active" data-view="final">최종</button>
+                    <button data-view="rough">기계 번역</button>
+                    <button data-view="refined">Ollama LLM 보정</button>
+                </div>
+                <div class="result-area empty" id="result">번역 결과가 여기 표시됩니다.</div>
+                <span class="badge refined" id="badgeRefined" style="display:none">Ollama LLM 보정됨</span>
+                <span class="badge rough" id="badgeRough" style="display:none">기계만</span>
+                <p class="error-msg" id="errorMsg" style="display:none"></p>
+            </div>
+            <div class="card">
+                <div class="card-title">용어집 (선택)</div>
+                <div class="glossary-list" id="glossaryList"></div>
+                <button class="btn btn-outline btn-sm" id="addGlossary">+ 용어 추가</button>
+            </div>
+            <div class="card">
+                <div class="card-title">번역 히스토리</div>
+                <div class="history-list" id="historyList"></div>
+                <button class="btn btn-outline btn-sm" id="clearHistory" style="margin-top:0.5rem">히스토리 지우기</button>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-realtime">
+            <div class="card usage-card">
+                <div class="usage-title">📖 실시간 통역 사용법</div>
+                <ul class="usage-list">
+                    <li><strong>⌨️ 타이핑</strong>: 입력 시 잠시 멈추면 자동 번역됩니다.</li>
+                    <li><strong>🎤 음성</strong>: 말하기 버튼 → 말함 → 인식 → 번역 → 음성 출력.</li>
+                    <li><strong>💬 대화</strong>: 내가 말하기 / 상대가 말하기로 양방향 통역. 대화 내용을 회의록으로 저장할 수 있습니다.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="realtime-mode-switch">
+                    <button class="mode-btn active" data-mode="typing">⌨️ 타이핑</button>
+                    <button class="mode-btn" data-mode="voice">🎤 음성</button>
+                    <button class="mode-btn" data-mode="conversation">💬 대화</button>
+                </div>
+                <div class="controls">
+                    <div class="control-group"><label>원문</label><select id="realtimeSource">{% for c,n in languages.items() %}<option value="{{c}}" {%if c=='ko'%}selected{%endif%}>{{n}}</option>{% endfor %}</select></div>
+                    <div class="control-group"><label>대상</label><select id="realtimeTarget">{% for c,n in languages.items() %}<option value="{{c}}" {%if c=='en'%}selected{%endif%}>{{n}}</option>{% endfor %}</select></div>
+                </div>
+                <div class="toggle-row"><input type="checkbox" id="realtimeUseLlm" checked><label for="realtimeUseLlm">Ollama LLM 보정</label></div>
+                <div id="realtimeTypingArea">
+                    <textarea id="realtimeInput" placeholder="입력하면 자동 번역됩니다 (0.8초 대기 후)..."></textarea>
+                </div>
+                <div id="realtimeVoiceArea" style="display:none">
+                    <button class="btn btn-voice" id="realtimeSpeakBtn">🎤 말하기</button>
+                    <p class="voice-hint" id="voiceHint">버튼을 누른 후 말하세요.</p>
+                </div>
+                <div id="realtimeConversationArea" style="display:none">
+                    <div class="conversation-speakers">
+                        <div class="control-group"><label>내 이름</label><input type="text" id="speakerMe" placeholder="예: 김철수" maxlength="20"></div>
+                        <div class="control-group"><label>상대 이름</label><input type="text" id="speakerOther" placeholder="예: John" maxlength="20"></div>
+                    </div>
+                    <div class="conversation-buttons">
+                        <button class="btn btn-conv" id="convMeBtn">🇰🇷 내가 말하기</button>
+                        <button class="btn btn-conv" id="convOtherBtn">🌐 상대가 말하기</button>
+                        <button class="btn btn-conv btn-conv-unknown" id="convUnknownBtn">❓ 누군가</button>
+                    </div>
+                    <p class="voice-hint" id="convHint">말할 사람 버튼을 누른 후 말하세요. 누군가는 나중에 회의록에서 수정할 수 있습니다.</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="result-header">
+                    <span class="card-title">번역 결과</span>
+                    <span id="realtimeResultBtns" style="display:none">
+                        <button class="btn btn-outline btn-sm" id="realtimeTtsBtn">🔊 듣기</button>
+                    </span>
+                </div>
+                <div class="result-area empty" id="realtimeResult">결과가 여기 표시됩니다.</div>
+            </div>
+            <div class="card" id="meetingNotesCard" style="display:none">
+                <div class="result-header">
+                    <span class="card-title">📋 회의록</span>
+                    <span>
+                        <button class="btn btn-outline btn-sm" id="downloadMeetingTxt">TXT 다운로드</button>
+                        <button class="btn btn-outline btn-sm" id="clearMeetingBtn">초기화</button>
+                    </span>
+                </div>
+                <div class="meeting-log" id="meetingLog"></div>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-email">
+            <div class="card usage-card">
+                <div class="usage-title">📖 바이어 메일 사용법</div>
+                <ul class="usage-list">
+                    <li>메일함에서 받은 메일 전체를 <strong>복사(Ctrl+A, Ctrl+C)</strong>한 뒤 여기에 붙여넣으세요.</li>
+                    <li>From, Subject, 본문이 자동으로 구분되어 제목과 본문만 번역됩니다.</li>
+                    <li>본문만 있어도 바로 번역됩니다.</li>
+                    <li>번역 완료 후 <strong>전체 복사</strong> 버튼으로 결과를 복사할 수 있습니다.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="card-title">📧 해외 바이어 메일 번역</div>
+                <div class="controls">
+                    <div class="control-group"><label>원문 언어</label><select id="emailSource">{% for c,n in languages.items() %}<option value="{{c}}" {%if c=='en'%}selected{%endif%}>{{n}}</option>{% endfor %}</select></div>
+                    <div class="control-group"><label>→ 한국어</label><select id="emailTarget">{% for c,n in languages.items() %}<option value="{{c}}" {%if c=='ko'%}selected{%endif%}>{{n}}</option>{% endfor %}</select></div>
+                </div>
+                <div class="toggle-row"><input type="checkbox" id="emailUseLlm" checked><label for="emailUseLlm">Ollama LLM 보정</label></div>
+                <textarea id="emailInput" placeholder="From: buyer@example.com&#10;To: you@company.com&#10;Subject: Inquiry about your products&#10;&#10;Hello, I am interested in..."></textarea>
+                <button class="btn" id="emailTranslateBtn" style="margin-top:0.75rem">메일 번역</button>
+            </div>
+            <div class="card">
+                <div class="result-header">
+                    <span class="card-title">번역된 메일</span>
+                    <span id="emailResultBtns" style="display:none">
+                        <button class="btn btn-outline btn-sm" id="emailTtsBtn" title="음성으로 듣기">🔊 듣기</button>
+                        <button class="btn btn-outline btn-sm" id="emailCopyBtn">전체 복사</button>
+                    </span>
+                </div>
+                <div class="email-result" id="emailResult">
+                    <p class="email-placeholder">메일을 붙여넣고 번역 버튼을 누르세요.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel" id="panel-batch">
+            <div class="card usage-card">
+                <div class="usage-title">📖 배치 번역 사용법</div>
+                <ul class="usage-list">
+                    <li><strong>한 줄에 한 문장</strong>씩 입력하세요. 줄바꿈으로 문장을 구분합니다.</li>
+                    <li>여러 문장을 한 번에 번역해 효율적으로 작업할 수 있습니다.</li>
+                    <li>상품 설명, FAQ, 리스트 등을 번역할 때 유용합니다.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="controls">
+                    <div class="control-group"><label>원문</label><select id="batchSource">{% for c,n in languages.items() %}<option value="{{c}}" {%if c=='ko'%}selected{%endif%}>{{n}}</option>{% endfor %}</select></div>
+                    <div class="control-group"><label>대상</label><select id="batchTarget">{% for c,n in languages.items() %}<option value="{{c}}" {%if c=='en'%}selected{%endif%}>{{n}}</option>{% endfor %}</select></div>
+                </div>
+                <div class="toggle-row"><input type="checkbox" id="batchUseLlm" checked><label for="batchUseLlm">Ollama LLM 보정</label></div>
+                <textarea id="batchInput" placeholder="한 줄에 한 문장씩 입력하세요..."></textarea>
+                <button class="btn" id="batchTranslateBtn" style="margin-top:0.75rem">배치 번역</button>
+            </div>
+            <div class="card batch-result" id="batchResult"></div>
+        </div>
+
+        <div class="panel" id="panel-file">
+            <div class="card usage-card">
+                <div class="usage-title">📖 파일 번역 사용법</div>
+                <ul class="usage-list">
+                    <li><strong>txt, docx</strong> 파일을 지원합니다. 끌어다 놓거나 클릭해 선택하세요.</li>
+                    <li>파일의 각 문단이 따로 번역되어 결과에 표시됩니다.</li>
+                    <li>긴 문서를 문단별로 나누어 자연스럽게 번역할 수 있습니다.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="controls">
+                    <div class="control-group"><label>원문</label><select id="fileSource">{% for c,n in languages.items() %}<option value="{{c}}" {%if c=='ko'%}selected{%endif%}>{{n}}</option>{% endfor %}</select></div>
+                    <div class="control-group"><label>대상</label><select id="fileTarget">{% for c,n in languages.items() %}<option value="{{c}}" {%if c=='en'%}selected{%endif%}>{{n}}</option>{% endfor %}</select></div>
+                </div>
+                <div class="toggle-row"><input type="checkbox" id="fileUseLlm" checked><label for="fileUseLlm">Ollama LLM 보정</label></div>
+                <div class="file-drop" id="fileDrop">
+                    <input type="file" id="fileInput" accept=".txt,.docx,.doc">
+                    <p>파일을 끌어다 놓거나 클릭하세요 (txt, docx)</p>
+                </div>
+                <button class="btn" id="fileTranslateBtn" style="margin-top:0.75rem" disabled>파일 번역</button>
+            </div>
+            <div class="card batch-result" id="fileResult"></div>
+        </div>
+
+        <div class="panel" id="panel-multi">
+            <div class="card usage-card">
+                <div class="usage-title">📖 다국어 번역 사용법</div>
+                <ul class="usage-list">
+                    <li>대상 언어를 <strong>복수 선택</strong>한 뒤 텍스트를 입력하고 번역하세요.</li>
+                    <li>같은 문장을 영어, 일본어, 중국어 등 여러 언어로 동시에 번역합니다.</li>
+                    <li>다국어 홍보 자료, 제품 설명 등을 한 번에 작성할 때 유용합니다.</li>
+                </ul>
+            </div>
+            <div class="card">
+                <div class="controls">
+                    <div class="control-group"><label>원문</label><select id="multiSource">{% for c,n in languages.items() %}<option value="{{c}}" {%if c=='ko'%}selected{%endif%}>{{n}}</option>{% endfor %}</select></div>
+                </div>
+                <div class="card-title">대상 언어 (복수 선택)</div>
+                <div class="lang-checkboxes" id="multiTargets">{% for c,n in languages.items() %}{% if c != 'ko' %}<label><input type="checkbox" value="{{c}}"> {{n}}</label>{% endif %}{% endfor %}</div>
+                <div class="toggle-row"><input type="checkbox" id="multiUseLlm" checked><label for="multiUseLlm">Ollama LLM 보정</label></div>
+                <textarea id="multiInput" placeholder="번역할 텍스트..."></textarea>
+                <button class="btn" id="multiTranslateBtn" style="margin-top:0.75rem">다국어 번역</button>
+            </div>
+            <div class="card multi-result" id="multiResult"></div>
+        </div>
+    </div>
+
+    <script>
+        window.LANG_NAMES = { {% for k, v in languages.items() %}"{{ k }}": "{{ v }}"{% if not loop.last %}, {% endif %}{% endfor %};
+    </script>
+    <script src="/static/js/main.js"></script>
+</body>
+</html>

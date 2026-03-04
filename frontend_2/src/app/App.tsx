@@ -4,6 +4,7 @@ import { RouterProvider } from "react-router-dom";
 import { router } from "@routes/index";
 import { AuthProvider, useAuth } from "@context/AuthContext";
 import { ChatProvider } from "@context/ChatContext";
+import { ThemeProvider } from "@context/ThemeContext";
 
 const AppContent = () => {
   const { isInitialized } = useAuth();
@@ -31,11 +32,13 @@ const AppContent = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <ChatProvider>
-        <AppContent />
-      </ChatProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <ChatProvider>
+          <AppContent />
+        </ChatProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
