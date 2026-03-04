@@ -9,7 +9,7 @@ router = APIRouter(prefix="/chat", tags=["chat"])
 @router.post("")
 async def chat(
     request: ChatRequest,
-    current_user: dict = Depends(get_current_user),
+    # current_user: dict = Depends(get_current_user),
     controller: ChatController = Depends(get_chat_controller),
 ):
 #    1. 스트리밍으로 결과를 받고 싶은 경우 (주석 해제 및 이름 확인)
