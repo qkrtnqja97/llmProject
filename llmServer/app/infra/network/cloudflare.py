@@ -12,8 +12,17 @@ class CloudflareTunnel:
         self._proc = None
 
     def start(self, wait_sec: int = 3):
-        subprocess.run(["pkill", "-f", "cloudflared"], stderr=subprocess.DEVNULL)
+        try:
+            subprocess.run(
+                ["pkill", "-f", "cloudflared"],
+                stderr=subprocess.DEVNULL
+            )
+        except FileNotFoundError:
+            print("pkill not found. Skipping...")
 
+        subprocess.Popen(
+            ["cloudflared", "tunnel", "--url", self.hostname]
+        )
         cmd = [
             "/usr/local/bin/cloudflared",
             "access",

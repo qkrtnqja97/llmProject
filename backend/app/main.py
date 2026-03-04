@@ -42,10 +42,10 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     )
 
 # 5. 실행 설정
-if __name__ == "__main__":
-    uvicorn.run(
-        "app.main:app", 
-        host="0.0.0.0",
-        port=8000,
-        reload=True
-    )
+# if __name__ == "__main__":
+#     uvicorn.run(
+#         "app.main:app", 
+#         host="0.0.0.0",
+#         port=8000,
+#         reload=True
+#     )

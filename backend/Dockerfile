@@ -5,6 +5,8 @@ ENV PYTHONUNBUFFERED=1
 
 WORKDIR /backendWorkspace
 
+RUN pip install --no-cache-dir --upgrade pip setuptools wheel
+
 # 의존성 먼저 복사 (캐시 효율)
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
