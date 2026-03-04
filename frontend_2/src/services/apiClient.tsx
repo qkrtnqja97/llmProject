@@ -7,11 +7,11 @@ let isAuthAlertShown = false;
 const apiClient = axios.create({
   // 📍 백엔드 로그에 찍힌 실제 IP 주소(176)로 수정하세요.
   // 만약 로컬에서만 테스트한다면 "http://localhost:8000/v1"도 가능합니다.
-  baseURL: "http://localhost:8000/v1",
+  baseURL: import.meta.env.VITE_API_BASE_URL,
   headers: {
     "Content-Type": "application/json",
   },
-  timeout: 10000, // 로그인/기본 요청은 10초 내외로 설정
+  timeout: 60000, // 로그인/기본 요청은 10초 내외로 설정
 });
 
 // 요청 인터셉터

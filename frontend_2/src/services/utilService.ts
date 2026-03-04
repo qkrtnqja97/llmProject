@@ -21,12 +21,15 @@ export const escapeHtml = (text: string | undefined | null): string => {
  */
 export const debounce = <T extends (...args: any[]) => any>(
   func: T,
-  delay: number
+  delay: number,
 ): ((...args: Parameters<T>) => void) => {
-  let timeoutId: NodeJS.Timeout;
+  // 📍 수정됨: NodeJS.Timeout 대신 ReturnType을 사용하여 브라우저/Node 환경 모두 대응
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
 
   return (...args: Parameters<T>) => {
-    clearTimeout(timeoutId);
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
     timeoutId = setTimeout(() => func(...args), delay);
   };
 };
@@ -38,9 +41,9 @@ export const debounce = <T extends (...args: any[]) => any>(
  */
 export const throttle = <T extends (...args: any[]) => any>(
   func: T,
-  limit: number
+  limit: number,
 ): ((...args: Parameters<T>) => void) => {
-  let inThrottle: boolean;
+  let inThrottle: boolean = false;
 
   return (...args: Parameters<T>) => {
     if (!inThrottle) {
@@ -58,7 +61,7 @@ export const throttle = <T extends (...args: any[]) => any>(
  */
 export const formatDate = (
   date: Date | number,
-  format: string = "YYYY-MM-DD HH:mm:ss"
+  format: string = "YYYY-MM-DD HH:mm:ss",
 ): string => {
   const d = typeof date === "number" ? new Date(date) : date;
 
@@ -127,7 +130,7 @@ export const formatNumber = (num: number): string => {
 export const truncateText = (
   text: string,
   maxLength: number,
-  suffix: string = "..."
+  suffix: string = "...",
 ): string => {
   if (text.length <= maxLength) return text;
   return text.slice(0, maxLength) + suffix;
@@ -137,7 +140,7 @@ export const truncateText = (
  * UUID 생성
  */
 export const generateId = (): string => {
-  return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+  return `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 };
 
 /**

@@ -8,6 +8,11 @@ export default defineConfig({
   server: {
     host: true, // 0.0.0.0으로 노출하여 외부 IP 접속 허용
     port: 5173,
+    allowedHosts: [
+      "frames-criteria-livestock-acknowledge.trycloudflare.com",
+      "localhost",
+      "127.0.0.1",
+    ],
   },
   resolve: {
     alias: {

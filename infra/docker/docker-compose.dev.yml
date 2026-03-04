@@ -4,16 +4,16 @@ services:
   # --- 프론트엔드 (추가됨) ---
   frontend:
     build:
-      context: ../../frontend # 프론트엔드 Dockerfile 위치
+      context: ../../frontend_2 # 프론트엔드 Dockerfile 위치
     container_name: frontend
     ports:
       - "5173:5173"
     volumes:
-      - ../../frontend:/frontendWorkspace
+      - ../../frontend_2:/frontendWorkspace
       # node_modules는 호스트와 컨테이너가 섞이지 않게 익명 볼륨으로 보호합니다.
       - /frontendWorkspace/node_modules
     environment:
-      - VITE_API_BASE_URL=http://localhost:8000/v1
+      - VITE_API_BASE_URL=https://seed-alloy-arcade-suffering.trycloudflare.com/v1
     command: npm run dev -- --host 0.0.0.0
     depends_on:
       - backend

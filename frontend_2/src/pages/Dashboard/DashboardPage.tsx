@@ -232,7 +232,7 @@ const Dashboard: React.FC = () => {
                 </div>
                 {isGraphYearOpen && (
                   <ul className={styles.customOptions}>
-                    {[2026, 2025, 2024].map((year) => (
+                    {[2025, 2024, 2023].map((year) => (
                       <li
                         key={year}
                         onClick={() => {

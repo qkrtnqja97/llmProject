@@ -13,9 +13,15 @@ from app.api.v1.routes.translate_router import router as translate_router
 
 app = FastAPI(lifespan=lifespan)
 
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://frames-criteria-livestock-acknowledge.trycloudflare.com", # ✅ 프론트엔드 터널 주소 추가
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
