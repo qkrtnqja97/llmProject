@@ -1,7 +1,6 @@
 from fastapi import APIRouter, Depends
-from fastapi.responses import StreamingResponse
 from app.schemas.chat import ChatRequest
-from app.api.deps import get_chat_controller, get_current_user
+from app.api.deps import get_chat_controller
 from app.api.v1.controllers.chat_controller import ChatController
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -12,6 +11,7 @@ async def chat(
     current_user: dict = Depends(get_current_user),
     controller: ChatController = Depends(get_chat_controller),
 ):
+<<<<<<< HEAD
     # ❌ 기존 스트리밍 방식 (주석 처리)
     # return StreamingResponse(
     #     controller.chat_stream_generator(request.prompt), 
@@ -24,3 +24,10 @@ async def chat(
     
     result = await controller.chat(request.prompt) # 컨트롤러에 일반 chat 메서드가 있다고 가정
     return {"answer": result}
+=======
+    return await controller.chat(
+        request.user_id,
+        request.session_id,
+        request.prompt
+    )
+>>>>>>> df7b45c06efaaad031cabd34a10d9a7d2b89f7d4
