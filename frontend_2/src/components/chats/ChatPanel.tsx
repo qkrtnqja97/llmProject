@@ -1,39 +1,43 @@
 /* src/components/chats/ChatPanel.tsx */
 import React, { useState, useRef, useEffect } from "react";
 import { useChat } from "@context/ChatContext";
+import { useAuth } from "@context/AuthContext"; // ✅ Auth 추가
 import { User, Bot, Send, Square } from "lucide-react";
-import styles from "./ChatPanel.module.css";
+import styles from "./ChatPanel.module.css"; // .module.css 인 경우 경로 확인 필요
 
 const ChatPanel: React.FC = () => {
-  const { messages, addMessage, simulateStreaming, stopStreaming } = useChat();
+  // ✅ simulateStreaming -> sendMessage로 변경
+  const { messages, sendMessage, stopStreaming } = useChat();
+  const { user, userSettings } = useAuth(); // ✅ 유저 정보 가져오기
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // 새 메시지가 올 때마다 자동 스크롤
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
   }, [messages]);
 
-  const handleSend = () => {
+  const handleSend = async () => {
     if (!input.trim() || isTyping) return;
 
-    addMessage({
-      role: "user",
-      content: input,
-      timestamp: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    });
-
     const userPrompt = input;
+    const userId = (userSettings as any)?.emp_id || user || "guest"; // ✅ 백엔드용 ID 추출
+
     setInput("");
     setIsTyping(true);
 
-    // 응답 완료 시 isTyping을 false로 바꾸는 콜백 전달
-    simulateStreaming(userPrompt, () => setIsTyping(false));
+    try {
+      // ✅ 실제 API 연동 함수 호출 (Context에서 메시지 추가 로직을 포함하므로 여기서 addMessage 중복 호출 방지)
+      await sendMessage(userPrompt, userId, () => {
+        setIsTyping(false);
+      });
+    } catch (error) {
+      console.error("전송 에러:", error);
+      setIsTyping(false);
+    }
   };
 
   // 중지 버튼 클릭 시 호출
@@ -112,7 +116,6 @@ const ChatPanel: React.FC = () => {
             disabled={isTyping}
           />
 
-          {/* 📍 테마 대응: 중지 버튼의 색상을 인라인 대신 클래스나 변수로 관리 권장 */}
           {isTyping ? (
             <button
               onClick={handleStop}

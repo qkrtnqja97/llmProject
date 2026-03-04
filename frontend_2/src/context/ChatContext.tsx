@@ -1,18 +1,23 @@
 /* src/context/ChatContext.tsx */
 import { createContext, useContext, useState, ReactNode, useRef } from "react";
+import { chatService } from "@services/chatService";
 
 interface Message {
   role: "user" | "assistant";
   content: string;
   timestamp: string;
-  isStopped?: boolean; // 중단 상태를 위한 속성
+  isStopped?: boolean;
 }
 
 interface ChatContextType {
   messages: Message[];
   addMessage: (msg: Message) => void;
   updateLastAssistantMessage: (chunk: string) => void;
-  simulateStreaming: (question: string, onComplete?: () => void) => void;
+  sendMessage: (
+    prompt: string,
+    userId: string,
+    onComplete?: () => void,
+  ) => Promise<void>;
   stopStreaming: () => void;
   lastQuestion: string;
   lastAnswer: string;
@@ -27,13 +32,16 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
   const typingIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
-  // 메시지 추가 함수
-  const addMessage = (msg: Message) => {
-    const timestamp = new Date().toLocaleTimeString([], {
+  // 현재 시간 포맷팅 함수
+  const getNowTime = () =>
+    new Date().toLocaleTimeString([], {
       hour: "2-digit",
       minute: "2-digit",
     });
-    const msgWithTime = { ...msg, timestamp: msg.timestamp || timestamp };
+
+  // 메시지 추가 함수
+  const addMessage = (msg: Message) => {
+    const msgWithTime = { ...msg, timestamp: msg.timestamp || getNowTime() };
 
     setMessages((prev) => [...prev, msgWithTime]);
 
@@ -46,7 +54,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // 마지막 어시스턴트 메시지에 텍스트 조각(chunk)을 추가하는 함수
+  // 마지막 어시스턴트 메시지에 텍스트 조각을 추가하는 함수
   const updateLastAssistantMessage = (chunk: string) => {
     setMessages((prev) => {
       const lastMsg = prev[prev.length - 1];
@@ -54,26 +62,16 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         const updatedContent = lastMsg.content + chunk;
         return [...prev.slice(0, -1), { ...lastMsg, content: updatedContent }];
       } else {
-        // 어시스턴트 메시지가 없으면 새로 생성
-        const newMsg: Message = {
-          role: "assistant",
-          content: chunk,
-          timestamp: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        };
-        return [...prev, newMsg];
+        return [
+          ...prev,
+          { role: "assistant", content: chunk, timestamp: getNowTime() },
+        ];
       }
     });
-    // 최신 답변 상태 업데이트
     setLastAnswer((prev) => prev + chunk);
   };
 
-  /**
-   * 스트리밍 중지 함수
-   * 인터벌을 제거하고 마지막 메시지에 중단 표시(isStopped)를 남깁니다.
-   */
+  // 스트리밍(출력) 중지 함수
   const stopStreaming = () => {
     if (typingIntervalRef.current) {
       clearInterval(typingIntervalRef.current);
@@ -90,45 +88,55 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   };
 
   /**
-   * [임시 코드] 타이핑 효과 테스트를 위한 함수
+   * 실제 AI API와 통신하여 메시지를 보내고 타이핑 효과를 구현하는 함수
    */
-  const simulateStreaming = (question: string, onComplete?: () => void) => {
-    // 이미 실행 중인 스트리밍이 있다면 먼저 중단
+  const sendMessage = async (
+    prompt: string,
+    userId: string,
+    onComplete?: () => void,
+  ) => {
+    // 1. 기존 동작 중인 타이핑이 있다면 중단
     if (typingIntervalRef.current) {
       clearInterval(typingIntervalRef.current);
     }
 
-    const longText = `[테스트 응답 시작] 요청하신 "${question}"에 대한 긴 답변입니다. 
-    이 문장은 타이핑 효과 및 중단 기능을 테스트하기 위해 생성되었습니다. 
-    인공지능 시스템이 실시간으로 데이터를 처리하고 문장을 생성하는 과정을 시각적으로 확인하실 수 있습니다. 
-    Smart Work 시스템의 채팅 인터페이스는 사용자의 입력에 즉각적으로 반응하며, 
-    긴 문장이 생성될 때도 레이아웃이 깨지지 않고 자연스럽게 스크롤되도록 설계되었습니다. 
-    현재 적용된 라이트/다크 모드 테마가 말풍선 배경과 텍스트 컬러에 정상적으로 반영되는지도 
-    함께 확인해 보시기 바랍니다. 
-    테스트가 완료되면 이 임시 로직을 제거하고 실제 백엔드 API 스트리밍과 연결하시면 됩니다. [테스트 끝]`;
+    // 2. 사용자 메시지 추가
+    addMessage({ role: "user", content: prompt, timestamp: getNowTime() });
 
-    // 1. 먼저 빈 Assistant 메시지 추가하여 응답 시작 알림
-    addMessage({ role: "assistant", content: "", timestamp: "" });
+    try {
+      // 3. 백엔드 API 호출
+      const data = await chatService.ask(prompt, userId);
+      const fullResponse = data.response;
 
-    // 2. 글자 한 개씩 끊어서 업데이트 (인터벌 시작)
-    let index = 0;
-    const interval = setInterval(() => {
-      if (index < longText.length) {
-        // current 문자열 조각 전달
-        const char = longText[index];
-        updateLastAssistantMessage(char);
-        index++;
-      } else {
-        // 전체 텍스트 출력 완료 시 종료
-        if (typingIntervalRef.current) {
-          clearInterval(typingIntervalRef.current);
-          typingIntervalRef.current = null;
+      // 4. 어시스턴트 빈 메시지 시작
+      addMessage({ role: "assistant", content: "", timestamp: getNowTime() });
+
+      // 5. 타이핑 효과 시작 (글자별로 출력)
+      let index = 0;
+      const interval = setInterval(() => {
+        if (index < fullResponse.length) {
+          updateLastAssistantMessage(fullResponse[index]);
+          index++;
+        } else {
+          if (typingIntervalRef.current) {
+            clearInterval(typingIntervalRef.current);
+            typingIntervalRef.current = null;
+          }
+          if (onComplete) onComplete();
         }
-        if (onComplete) onComplete();
-      }
-    }, 30);
+      }, 20); // 출력 속도 조절 (20ms)
 
-    typingIntervalRef.current = interval;
+      typingIntervalRef.current = interval;
+    } catch (error) {
+      console.error("Chat API Error:", error);
+      addMessage({
+        role: "assistant",
+        content:
+          "⚠️ 서버와 통신 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+        timestamp: getNowTime(),
+      });
+      if (onComplete) onComplete();
+    }
   };
 
   return (
@@ -137,7 +145,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         messages,
         addMessage,
         updateLastAssistantMessage,
-        simulateStreaming,
+        sendMessage, // ✅ simulateStreaming 대신 sendMessage 사용
         stopStreaming,
         lastQuestion,
         lastAnswer,

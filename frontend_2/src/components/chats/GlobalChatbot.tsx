@@ -9,8 +9,7 @@ import React, {
 import * as LucideIcons from "lucide-react";
 import ChatPanel from "./ChatPanel";
 import { useChat } from "@context/ChatContext";
-import { useAuth } from "@context/AuthContext"; // ✅ AuthContext 추가
-import { chatService } from "@services/chatService";
+import { useAuth } from "@context/AuthContext";
 import styles from "./GlobalChatbot.module.css";
 
 interface GlobalChatbotProps {
@@ -25,8 +24,9 @@ const GlobalChatbot: React.FC<GlobalChatbotProps> = ({
   setIsOpen,
   isSettingsOpen,
 }) => {
-  const { lastQuestion, lastAnswer, addMessage } = useChat();
-  const { user, userSettings } = useAuth(); // ✅ 유저 정보 및 설정 가져오기
+  // ✅ sendMessage를 가져와서 사용합니다.
+  const { lastQuestion, lastAnswer, sendMessage } = useChat();
+  const { user, userSettings } = useAuth();
 
   const [miniInput, setMiniInput] = useState("");
   const [isMiniLoading, setIsMiniLoading] = useState(false);
@@ -93,40 +93,25 @@ const GlobalChatbot: React.FC<GlobalChatbotProps> = ({
     if (!isDragging) setIsOpen(true);
   };
 
+  // ✅ 미니 입력창 전송 로직 수정
   const handleMiniSend = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!miniInput.trim() || isMiniLoading) return;
 
     const userPrompt = miniInput;
-    // ✅ 백엔드 user_id 결정: userSettings의 emp_id를 우선하되, 없으면 login 시 저장된 user(id) 사용
     const userId = (userSettings as any)?.emp_id || user || "guest";
-
-    const time = new Date().toLocaleTimeString([], {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
 
     setMiniInput("");
     setIsMiniLoading(true);
     setShowPreview(true);
 
-    addMessage({ role: "user", content: userPrompt, timestamp: time });
-
     try {
-      // ✅ chatService.ask에 prompt와 userId를 모두 전달하여 에러 해결
-      const data = await chatService.ask(userPrompt, userId);
-      addMessage({
-        role: "assistant",
-        content: data.response,
-        timestamp: time,
+      // ✅ Context의 sendMessage를 호출하여 실시간 타이핑 효과와 백엔드 통신을 동시에 수행
+      await sendMessage(userPrompt, userId, () => {
+        setIsMiniLoading(false);
       });
     } catch (error) {
-      addMessage({
-        role: "assistant",
-        content: "⚠️ 오류 발생",
-        timestamp: time,
-      });
-    } finally {
+      console.error("미니챗 전송 에러:", error);
       setIsMiniLoading(false);
     }
   };
@@ -189,7 +174,7 @@ const GlobalChatbot: React.FC<GlobalChatbotProps> = ({
                     <div className={styles.answerRow}>
                       <span className={styles.aBadge}>A</span>
                       <span className={styles.text}>
-                        {isMiniLoading
+                        {isMiniLoading && !lastAnswer
                           ? "생각 중..."
                           : lastAnswer || "답변 대기 중"}
                       </span>
