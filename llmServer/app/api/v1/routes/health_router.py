@@ -10,4 +10,4 @@ async def health_check():
     """
     서버의 상태를 확인하는 엔드포인트입니다.
     """
-    return {"status": "ok"} 
+    return {"status": "건강합니다."} 

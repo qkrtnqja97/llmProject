@@ -18,3 +18,9 @@ async def chat(
     # )
 
     return await controller.chat(request.prompt)
+  
+@router.post("/llm/health")
+async def llm_health_check(
+    controller: ChatController = Depends(get_chat_controller),
+):
+    return await controller.llm_health_check()

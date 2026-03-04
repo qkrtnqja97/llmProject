@@ -20,3 +20,7 @@ class ChatService:
         
         # 2. 일반 질문은 그대로 진행
         return await self.llm_client.generate(prompt)
+      
+    async def llm_health_check(self):
+        return await self.llm_client.health()
+        

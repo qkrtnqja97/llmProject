@@ -12,9 +12,13 @@ class LLMClient:
 
     async def generate(self, prompt: str):
         res = await self.client.post(
-            f"{self.base_url}/v1/llm/chat/generate",
-            json={"prompt": prompt},
+            f"{self.base_url}/agent/query",
+            json={
+              "user_id" : "test_user",  # 실제 서비스에서는 인증된 사용자 ID를 전달
+              "session_id": "test_session",  # 실제 서비스에서는 세션 관리 로직에 따라 고유한 세션 ID를 전달  
+              "question": prompt},
         )
+        print(f'{self.base_url}/agent/query 응답 상태 코드:', res.status_code)
         res.raise_for_status()
         return res.json()
 
@@ -24,6 +28,7 @@ class LLMClient:
                 f"{self.base_url}/health",
                 timeout=3.0,  # 헬스체크는 짧게
             )
+            print(f'{self.base_url}/agent/query 응답 상태 코드:', res.status_code)
             return res.status_code == 200
         except Exception:
             return False
