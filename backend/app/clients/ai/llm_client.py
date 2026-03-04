@@ -10,17 +10,24 @@ class LLMClient:
         self.client = http_client
         self.base_url = settings.LLM_SERVER_URL
 
-    async def generate(self, prompt: str):
-        res = await self.client.post(
-            f"{self.base_url}/agent/query",
-            json={
-              "user_id" : "test_user",  # 실제 서비스에서는 인증된 사용자 ID를 전달
-              "session_id": "test_session",  # 실제 서비스에서는 세션 관리 로직에 따라 고유한 세션 ID를 전달  
-              "question": prompt},
-        )
-        print(f'{self.base_url}/agent/query 응답 상태 코드:', res.status_code)
-        res.raise_for_status()
-        return res.json()
+    async def generate(self, user_id: str, session_id: str, prompt: str):
+
+        try:
+            res = await self.client.post(
+                f"{self.base_url}/agent/query",
+                json={
+                    "user_id": user_id,
+                    "session_id": session_id,
+                    "question": prompt
+                },
+                timeout=120.0
+            )
+
+            res.raise_for_status()
+            return res.json()
+
+        except httpx.ReadTimeout:
+            return {"response": "LLM 서버 응답이 지연되고 있습니다."}
 
     async def health(self) -> bool:
         try:
