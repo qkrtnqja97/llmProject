@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends
 from app.schemas.chat import ChatRequest
-from app.api.deps import get_chat_controller
+from app.api.deps import get_chat_controller, get_current_user
 from app.api.v1.controllers.chat_controller import ChatController
 
 router = APIRouter(prefix="/chat", tags=["chat"])
@@ -11,23 +11,18 @@ async def chat(
     current_user: dict = Depends(get_current_user),
     controller: ChatController = Depends(get_chat_controller),
 ):
-<<<<<<< HEAD
-    # ❌ 기존 스트리밍 방식 (주석 처리)
-    # return StreamingResponse(
-    #     controller.chat_stream_generator(request.prompt), 
-    #     media_type="text/event-stream"
-    # )
-
-    # ✅ 일반 JSON 응답 방식 (수정)
-    # 컨트롤러에서 스트리밍이 아닌 최종 답변 문자열을 반환하는 메서드를 호출해야 합니다.
-    # 만약 chat_stream_generator만 있다면, 내부 로직을 모아서 리턴하는 메서드를 추가하거나 아래처럼 호출하세요.
+    # 1. user_id 추출 (current_user 구조에 따라 id 또는 emp_id)
+    user_id = str(current_user.get("id") or current_user.get("emp_id") or "guest")
     
-    result = await controller.chat(request.prompt) # 컨트롤러에 일반 chat 메서드가 있다고 가정
-    return {"answer": result}
-=======
-    return await controller.chat(
-        request.user_id,
-        request.session_id,
-        request.prompt
+    # 2. session_id 설정
+    session_id = getattr(request, "session_id", "default_session")
+
+    # 3. 컨트롤러 호출 (정의된 user_id, session_id, prompt 모두 전달)
+    result = await controller.chat(
+        user_id=user_id,
+        session_id=session_id, 
+        prompt=request.prompt
     )
->>>>>>> df7b45c06efaaad031cabd34a10d9a7d2b89f7d4
+    
+    # 컨트롤러가 이미 response 딕셔너리를 리턴하므로 그대로 반환하거나 감싸서 반환
+    return result

@@ -5,7 +5,6 @@ import axios from "axios";
 let isAuthAlertShown = false;
 
 const apiClient = axios.create({
-<<<<<<< HEAD
   // 📍 백엔드 로그에 찍힌 실제 IP 주소(176)로 수정하세요.
   // 만약 로컬에서만 테스트한다면 "http://localhost:8000/v1"도 가능합니다.
   baseURL: "http://localhost:8000/v1",
@@ -13,12 +12,6 @@ const apiClient = axios.create({
     "Content-Type": "application/json",
   },
   timeout: 10000, // 로그인/기본 요청은 10초 내외로 설정
-=======
-	baseURL: "http://localhost:8000/v1",
-	headers: {
-		"Content-Type": "application/json",
-	},
->>>>>>> df7b45c06efaaad031cabd34a10d9a7d2b89f7d4
 });
 
 // 요청 인터셉터

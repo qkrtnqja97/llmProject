@@ -29,24 +29,42 @@ const ChatPanel: React.FC = () => {
     }
   }, [messages]);
 
-  // 📍 텍스트에서 표 데이터를 추출하여 차트용 배열로 만드는 함수
+  /**
+   * 📍 텍스트에서 데이터를 추출하여 차트용 배열로 만드는 함수 (보강됨)
+   */
   const parseChartData = (content: string) => {
     const lines = content.split("\n");
     const chartData: any[] = [];
 
-    // 표 형식 (| 월 | 매출 |)을 찾는 정규식
-    const tableRowRegex = /^\|?\s*(\d+월)\s*\|\s*([\d,]+)원?\s*\|?$/;
+    // 1. 표 형식 인식: | 1월 | 272,308,310 |
+    const tableRowRegex = /^\|?\s*(\d+월)\s*\|\s*([\d,]+)\s*원?\s*\|?$/;
+    // 2. 리스트 형식 인식: 1월: 272,308,310 (원 단위가 없어도 인식하도록 수정)
+    const listRowRegex = /^[-*•]?\s*(\d+월)[:\s-]+\s*([\d,]+)\s*(?:원)?/;
 
     lines.forEach((line) => {
-      const match = line.match(tableRowRegex);
+      const trimmedLine = line.trim();
+      const match =
+        trimmedLine.match(tableRowRegex) || trimmedLine.match(listRowRegex);
+
       if (match) {
         const name = match[1]; // "1월"
-        const value = parseInt(match[2].replace(/,/g, "")); // "272,308,310" -> 272308310
-        chartData.push({ name, value });
+        // 콤마(,)를 모두 제거하고 순수하게 숫자만 추출
+        const value = parseInt(match[2].replace(/,/g, ""));
+
+        if (!isNaN(value)) {
+          chartData.push({ name, value });
+        }
       }
     });
 
-    return chartData.length > 0 ? chartData : null;
+    // 월 순서대로 정렬 (1월 -> 12월)
+    const sortedData = chartData.sort((a, b) => {
+      const aNum = parseInt(a.name);
+      const bNum = parseInt(b.name);
+      return aNum - bNum;
+    });
+
+    return sortedData.length > 0 ? sortedData : null;
   };
 
   const handleSend = async () => {
@@ -106,7 +124,7 @@ const ChatPanel: React.FC = () => {
                       </div>
                     ) : (
                       <div className={styles.markdownContent}>
-                        {/* ✅ 마크다운 렌더링 (표 출력 가능) */}
+                        {/* 마크다운 렌더링 */}
                         <ReactMarkdown remarkPlugins={[remarkGfm]}>
                           {msg.content}
                         </ReactMarkdown>
@@ -120,29 +138,53 @@ const ChatPanel: React.FC = () => {
                               height: 250,
                               marginTop: 20,
                               background: "#fff",
-                              padding: 10,
+                              padding: "15px 10px 10px 10px",
                               borderRadius: 8,
+                              border: "1px solid #eee",
                             }}
                           >
                             <p
                               style={{
                                 fontSize: "12px",
                                 fontWeight: "bold",
-                                marginBottom: "10px",
+                                marginBottom: "15px",
                                 color: "#333",
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "5px",
                               }}
                             >
-                              📊 데이터 시각화
+                              📊 데이터 시각화 리포트
                             </p>
                             <ResponsiveContainer width="100%" height="100%">
-                              <BarChart data={chartData}>
+                              <BarChart
+                                data={chartData}
+                                margin={{
+                                  top: 5,
+                                  right: 5,
+                                  left: -20,
+                                  bottom: 5,
+                                }}
+                              >
                                 <CartesianGrid
                                   strokeDasharray="3 3"
                                   vertical={false}
+                                  stroke="#f0f0f0"
                                 />
-                                <XAxis dataKey="name" fontSize={12} />
+                                <XAxis
+                                  dataKey="name"
+                                  fontSize={11}
+                                  tickLine={false}
+                                  axisLine={false}
+                                />
                                 <YAxis hide />
                                 <Tooltip
+                                  cursor={{ fill: "#f5f5ff" }}
+                                  contentStyle={{
+                                    borderRadius: "8px",
+                                    border: "none",
+                                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                                  }}
                                   formatter={(value: any) =>
                                     new Intl.NumberFormat("ko-KR").format(
                                       Number(value),
@@ -153,6 +195,7 @@ const ChatPanel: React.FC = () => {
                                   dataKey="value"
                                   fill="#4f46e5"
                                   radius={[4, 4, 0, 0]}
+                                  barSize={20}
                                 />
                               </BarChart>
                             </ResponsiveContainer>

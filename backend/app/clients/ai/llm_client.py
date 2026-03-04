@@ -8,7 +8,6 @@ class LLMClient:
         self.client = http_client
         self.base_url = settings.LLM_SERVER_URL
 
-<<<<<<< HEAD
     async def generate(self, prompt: str):
         target_url = f"{self.base_url}/agent/query"
         try:
@@ -24,26 +23,10 @@ class LLMClient:
             )
             
             print(f'[{target_url}] 응답 상태 코드:', res.status_code)
-=======
-    async def generate(self, user_id: str, session_id: str, prompt: str):
-
-        try:
-            res = await self.client.post(
-                f"{self.base_url}/agent/query",
-                json={
-                    "user_id": user_id,
-                    "session_id": session_id,
-                    "question": prompt
-                },
-                timeout=120.0
-            )
-
->>>>>>> df7b45c06efaaad031cabd34a10d9a7d2b89f7d4
             res.raise_for_status()
             return res.json()
 
         except httpx.ReadTimeout:
-<<<<<<< HEAD
             print(f"❌ LLM 서버 응답 시간 초과 (Timeout): {target_url}")
             return {"response": "AI가 답변을 생성하는 데 시간이 너무 오래 걸려 연결이 끊겼습니다. 잠시 후 다시 시도해 주세요."}
         
@@ -54,9 +37,6 @@ class LLMClient:
         except Exception as e:
             print(f"❌ LLM 클라이언트 에러 발생: {str(e)}")
             return {"response": f"응답 처리 중 오류가 발생했습니다: {str(e)}"}
-=======
-            return {"response": "LLM 서버 응답이 지연되고 있습니다."}
->>>>>>> df7b45c06efaaad031cabd34a10d9a7d2b89f7d4
 
     async def health(self) -> bool:
         try:
