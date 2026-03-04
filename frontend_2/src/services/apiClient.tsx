@@ -5,7 +5,7 @@ import axios from "axios";
 let isAuthAlertShown = false;
 
 const apiClient = axios.create({
-	baseURL: "http://192.168.0.100:8000/v1",
+	baseURL: "http://localhost:8000/v1",
 	headers: {
 		"Content-Type": "application/json",
 	},
