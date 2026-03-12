@@ -839,235 +839,91 @@ SYNONYM_DATA = [
 
 # ── 3. 비즈니스 용어 정의 ────────────────────────────────────
 BIZTERM_DATA = [
-    {"term": "재고회전율", "desc": "판매량/현재재고. sales_orders.sale_quantity 합계 / current_products.current_quantity. 높을수록 잘 팔림"},
-    {"term": "마진율", "desc": "(std_selling_price - std_unit_cost)/std_unit_cost*100. products 테이블 사용"},
-    {"term": "데드스톡", "desc": "6개월 이상 판매 없는 재고. current_products LEFT JOIN sales_orders 후 매출 없는 품목"},
-    {"term": "매출총이익", "desc": "actual_selling_price - std_unit_cost. sales_orders와 products 조인 후 계산"},
-    {"term": "ABC분석", "desc": "매출 기여도로 품목 분류. A=누적80%, B=누적95%, C=나머지. 윈도우함수 SUM OVER 사용"},
-    {"term": "매입단가", "desc": "actual_unit_cost(실제) 또는 std_unit_cost(표준). purchase_orders 또는 products 테이블"},
-    {"term": "판매단가", "desc": "actual_selling_price(실제) 또는 std_selling_price(표준). sales_orders 또는 products"},
-    {"term": "안전재고", "desc": "수요 변동 대비 최소 보유 재고. 평균 일판매량 * 조달기간으로 산출"},
-    {"term": "발주점", "desc": "재주문 필요 재고 수준. 현재고가 이하면 발주 필요"},
-    {"term": "리드타임", "desc": "발주~입고 소요일. purchase_orders.purchase_date 기준 분석"},
-    {"term": "수익성", "desc": "매출총이익 = 판매금액 - 매입원가. actual_selling_price * qty - std_unit_cost * qty"},
-    {"term": "매출액", "desc": "sale_quantity * actual_selling_price 합계. sales_orders 테이블에서 집계"},
-    {"term": "매입액", "desc": "purchase_quantity * actual_unit_cost 합계. purchase_orders 테이블에서 집계"},
-    {"term": "ASP (평균판매단가)", "desc": "총 매출액을 총 판매수량으로 나눈 값. SUM(sale_quantity * actual_selling_price) / SUM(sale_quantity)"},
-    {"term": "YoY (전년동기대비)", "desc": "작년 동일 기간과 올해 기간의 수치를 비교. EXTRACT(YEAR FROM date)를 활용해 각각 집계 후 비교"},
-]
-
+            {"id": "term_inv_turnover", "description": "재고회전율", "metadatas": {"sql": "보유 재고가 일정 기간 동안 몇 번이나 판매되었는지 나타내는 지표로, 수치가 높을수록 재고가 효율적으로 관리되고 있음을 의미함."}},
+            {"id": "term_margin_rate", "description": "마진율", "metadatas": {"sql": "판매 가격에서 원가를 제외한 이익이 판매가에서 차지하는 비중으로, 수익성을 판단하는 핵심 지표."}},
+            {"id": "term_dead_stock", "description": "데드스톡", "metadatas": {"sql": "장기간 거래나 판매가 발생하지 않아 창고 점유 비용만 발생시키는 악성 재고."}},
+            {"id": "term_gross_profit", "description": "매출총이익", "metadatas": {"sql": "전체 매출액에서 물품 매입에 들어간 원가를 차감한 순수 이익 금액."}},
+            {"id": "term_abc_analysis", "description": "ABC분석", "metadatas": {"sql": "매출 기여도에 따라 품목을 A(중요), B(보통), C(낮음) 등급으로 분류하여 관리 우선순위를 정하는 분석 기법."}},
+            {"id": "term_purchase_price", "description": "매입단가", "metadatas": {"sql": "상품을 들여올 때 지불하는 개당 비용으로, 상황에 따라 실제 매입가 또는 사전에 정해진 표준 원가를 적용함."}},
+            {"id": "term_sales_price", "description": "판매단가", "metadatas": {"sql": "상품을 판매할 때 고객에게 청구하는 개당 가격으로, 실제 거래가 또는 고정된 표준 판매가를 의미함."}},
+            {"id": "term_safety_stock", "description": "안전재고", "metadatas": {"sql": "예상치 못한 수요 변동이나 공급 지연에 대비하여 품절을 방지하기 위해 상시 보유해야 하는 최소한의 재고 수준."}},
+            {"id": "term_reorder_point", "description": "발주점", "metadatas": {"sql": "재고 부족이 발생하기 전에 새로운 주문을 진행해야 하는 기준이 되는 재고 수량."}},
+            {"id": "term_lead_time", "description": "리드타임", "metadatas": {"sql": "물품을 주문(발주)한 시점부터 실제로 창고에 입고되기까지 소요되는 전체 기간."}},
+            {"id": "term_profitability", "description": "수익성", "metadatas": {"sql": "판매 수익에서 모든 비용을 제외하고 남은 이익의 수준을 통해 기업의 운영 효율을 평가하는 기준."}},
+            {"id": "term_revenue", "description": "매출액", "metadatas": {"sql": "특정 기간 동안 상품 판매 활동을 통해 발생한 전체 판매 금액의 합계."}},
+            {"id": "term_purchase_amount", "description": "매입액", "metadatas": {"sql": "특정 기간 동안 상품 확보를 위해 지출한 전체 구매 금액의 합계."}},
+            {"id": "term_asp", "description": "ASP", "metadatas": {"sql": "평균 판매 단가. 전체 매출액을 총 판매 수량으로 나눈 값으로, 품목당 평균적으로 얼마에 판매되었는지 나타냄."}},
+            {"id": "term_yoy", "description": "YoY", "metadatas": {"sql": "전년 동기 대비 증감률. 작년의 동일한 기간과 현재의 실적을 비교하여 성장세를 분석하는 방식."}},
+            {"id": "term_winter_snap", "description": "윈터-스냅", "metadatas": {"sql": "2022년 말 기준의 초기 재고 데이터로, 모든 재고 흐름 분석과 수량 검증의 절대적인 시작점이 되는 데이터."}},
+            {"id": "term_wed_fri_wave", "description": "수금-웨이브", "metadatas": {"sql": "매주 수요일과 금요일에 정기적으로 발생하는 대규모 물류 출고 흐름을 의미함."}},
+            {"id": "term_dark_10", "description": "다크-텐", "metadatas": {"sql": "장기간 입출고 이력이 전혀 없는 하위 10%의 품목군으로, 창고 효율을 저하시키는 주요 집중 관리 대상."}},
+            {"id": "term_fortnight_batch", "description": "보름-배치", "metadatas": {"sql": "매월 1일과 15일에 집중적으로 대량 입고가 진행되는 정기 발주 및 매입 주기."}},
+            {"id": "term_ghost_pn", "description": "고스트-피엔", "metadatas": {"sql": "시스템 마스터에는 등록되어 있으나 실제 거래가 한 번도 발생하지 않아 데이터상으로만 존재하는 품목."}},
+            {"id": "term_delta_check", "description": "델타-체크", "metadatas": {"sql": "실제 창고의 재고 수량과 장부상의 계산 수량이 일치하는지 대조하여 데이터의 무결성을 검증하는 작업."}},
+            {"id": "term_golden_margin", "description": "골든-마진", "metadatas": {"sql": "초기 가격보다 실제 판매가가 더 높게 책정되어 수익이 극대화된 우수한 계약 또는 판매 상태."}},
+            {"id": "term_unique_lock", "description": "유니크-락", "metadatas": {"sql": "중복 등록 방지 제약으로 인해 동일한 업체가 신규로 등록되는 것을 차단하여 데이터 정합성을 유지하는 상태."}},
+            {"id": "term_zero_base_violation", "description": "제로-베이스 위반", "metadatas": {"sql": "구매 이력보다 판매 날짜가 앞서는 등 시간적 선후 관계가 맞지 않는 논리적 데이터 오류 상태."}},
+            {"id": "term_unit_tagging", "description": "유닛-태깅", "metadatas": {"sql": "분기별 예산 수립을 위해 표준 매입 원가를 확정하고 관리 기준을 설정하는 행위."}}
+        ]   
 # ── 4. 테이블-컬럼 Rich 문장 (스키마 설명) ── RAG 강화 버전 ──────────────────
 TABLE_SCHEMA_DATA = [
-    {
-        "doc": (
-            "current_products 테이블은 현재 보유 중인 실시간 재고 수량을 저장하는 현재 재고 테이블이다. "
-            "지금 재고가 얼마인지 조회하려면 이 테이블을 사용한다. "
-            "current_products 테이블: 모든 입출고 이력을 합산한 실시간 재고 현황 스냅샷. "
-            "재고 수량은 '초기재고(initial_inventory) + 총매입(purchase_orders) - 총판매(sales_orders)'로 계산된 최종 결과물이다. "
-            "컬럼: part_number(품번 VARCHAR PK, products 테이블 참조), "
-            "description(부품 카테고리코드: IC, FET/TR, C_CHIP, CAP, R_CHIP, RES 등), "
-            "current_quantity(현재 보유 재고수량 INTEGER, 실시간 합산값), "
-            "last_updated(마지막 재고 계산·갱신 일자 DATE). "
-            "주의사항: 이 테이블은 항상 최신 스냅샷이므로 날짜 필터(WHERE last_updated = ...)를 걸지 않고 전체 조회해야 한다. "
-            "재고가 0 이하이면 품절·결품 상태를 의미한다. "
-            "키워드: 재고 현황 지금 현재 보유 수량 품절 결품 잔량 남은 수량 스톡 stock 가용재고"
-        ),
-        "meta": {"table": "current_products", "type": "table_schema"}
-    },
-    {
-        "doc": (
-            "products 테이블: 회사가 취급하는 300종 전자부품의 핵심 마스터 정보를 관리한다. 날짜 컬럼이 없으므로 시계열 필터 불가. "
-            "컬럼: part_number(품번 VARCHAR PK, 예: '80-CBR04C...'), "
-            "description(부품 카테고리코드: IC, FET/TR, C_CHIP, CAP, R_CHIP, RES 등 — 부품 종류 분류용), "
-            "std_unit_cost(표준 매입 원가 NUMERIC, 예산 수립·원가 분석의 기준 단가), "
-            "std_selling_price(표준 판매 가격 NUMERIC, 시장 고시가·기준 마진율 산출용). "
-            "조인: purchase_orders.part_number = products.part_number (매입 이력 연결), "
-            "sales_orders.part_number = products.part_number (판매 이력 연결), "
-            "initial_inventory.part_number = products.part_number (초기 재고 연결). "
-            "활용: 표준단가 대비 실제단가 차이(price variance) 분석, 카테고리별 매출·매입 집계, 마진율(margin) 계산 시 기준 테이블. "
-            "마진율 계산식: (std_selling_price - std_unit_cost) / std_selling_price * 100. "
-            "키워드: 제품 품목 단가 표준가격 마스터 카테고리 원가 판매가 마진 부품 품번 목록"
-        ),
-        "meta": {"table": "products", "type": "table_schema"}
-    },
-    {
-        "doc": (
-            "sales_orders 테이블은 고객사에게 제품을 판매한 모든 매출·출고·판매 주문 이력을 저장하는 핵심 매출 테이블이다. "
-            "매출을 조회하려면 반드시 이 테이블을 사용한다. "
-            "고객사별 매출, 제품별 판매량, 기간별 매출액을 계산할 때 사용하는 테이블이다. "
-            "sales_orders 테이블: 매출·판매·주문·출고 이력. 약 39,572건. 매주 수요일·금요일 정기 납품 패턴이 반영되어 있다. "
-            "컬럼: order_id(주문번호 INTEGER PK, 판매 건별 고유 식별자), "
-            "vendor_id(고객사 ID INTEGER FK → vendors.vendor_id JOIN으로 고객사명 조회), "
-            "part_number(품번 VARCHAR FK → products.part_number JOIN으로 제품 정보 조회), "
-            "sale_quantity(판매·출고 수량 INTEGER, 건당 20~150개 분할 출고), "
-            "sale_date(판매·출고일 DATE, 범위 2023-01-04 ~ 2025-12-31), "
-            "actual_selling_price(실제 판매 단가 NUMERIC, 거래처별 실거래가 — 표준가와 차이 발생 가능). "
-            "매출액 계산: sale_quantity * actual_selling_price. "
-            "조인: sales_orders.vendor_id = vendors.vendor_id (고객사명 조회), "
-            "sales_orders.part_number = products.part_number (카테고리·표준단가 조회). "
-            "활용: 기간별 매출 집계, 고객사별 매출 순위, 제품별 판매 추이, 월별·분기별·연도별 매출 분석, "
-            "실판매가 vs 표준판매가 차이 분석, 요일별 출고 패턴 분석. "
-            "키워드: 매출 판매 주문 출고 얼마 실적 revenue 매출액 납품 거래 수주 고객 top 순위 랭킹 "
-            "매출조회 판매이력 판매내역 얼마 벌었 얼마 팔았 거래내역"
-        ),
-        "meta": {"table": "sales_orders", "type": "table_schema"}
-    },
-    {
-        "doc": (
-            "purchase_orders 테이블은 제조사로부터 제품을 구매한 모든 매입·발주·입고 이력을 저장하는 매입 테이블이다. "
-            "매입 금액이나 구매 내역을 조회하려면 이 테이블을 사용한다. "
-            "purchase_orders 테이블: 매입·구매·발주·입고 이력. 약 13,615건. 매월 1일·15일 배치 발주 패턴이 반영되어 있다. "
-            "컬럼: purchase_id(발주번호 INTEGER PK, 구매 건별 고유 식별자), "
-            "manufacturer_id(제조사 ID INTEGER FK → manufacturers.manufacturer_id JOIN으로 제조사명 조회), "
-            "part_number(품번 VARCHAR FK → products.part_number JOIN으로 제품 정보 조회), "
-            "purchase_quantity(매입·입고 수량 INTEGER, 건당 500~1,500개 대량 입고), "
-            "purchase_date(매입·입고일 DATE, 범위 2023-01-01 ~ 2025-12-31), "
-            "actual_unit_cost(실제 매입 단가 NUMERIC, 시점별 원가 추적 — 표준원가와 차이 발생 가능). "
-            "매입액 계산: purchase_quantity * actual_unit_cost. "
-            "조인: purchase_orders.manufacturer_id = manufacturers.manufacturer_id (제조사명 조회), "
-            "purchase_orders.part_number = products.part_number (카테고리·표준원가 조회). "
-            "활용: 기간별 매입 집계, 제조사별 구매 비중, 원가 변동 추이, 월별·분기별 매입 분석, "
-            "실매입가 vs 표준매입가 차이(purchase price variance) 분석, 발주 주기 분석. "
-            "키워드: 매입 구매 발주 납품 입고 원가 cost 매입액 공급 조달 구매비용 제조사별"
-        ),
-        "meta": {"table": "purchase_orders", "type": "table_schema"}
-    },
-    {
-        "doc": (
-            "vendors 테이블은 제품을 구매하는 고객사(거래처, 판매처, 바이어) 정보를 저장하는 고객사 마스터 테이블이다. "
-            "고객사 정보를 조회하려면 이 테이블을 사용한다. "
-            "고객사 이름, 거래처 목록, 판매처 정보를 확인할 때 사용하는 테이블이다. "
-            "vendors 테이블: 고객사·판매처·거래처·바이어 마스터. 총 29개 업체. "
-            "컬럼: vendor_id(INTEGER PK, 고객사 고유 식별자), "
-            "vendor_name(VARCHAR, 고객사명, UNIQUE 제약). "
-            "주요 고객사 예시: Digikey(디지키), Mouser(마우저), Farnell(파넬), RS Components(알에스), "
-            "TI, ST, ROHM(로옴), TOSHIBA(도시바), ON SEMI(온세미), SEOULSEMICON(서울반도체) 등. "
-            "조인: sales_orders.vendor_id = vendors.vendor_id (판매 이력에서 고객사명 JOIN). "
-            "활용: 고객사별 매출 순위, 고객사별 구매 품목 분석, 주요 거래처 집중도(파레토) 분석, "
-            "고객사별 판매 단가 비교, 고객사 이탈·신규 분석. "
-            "검색 팁: 고객사명 검색 시 LIKE 또는 ILIKE 사용 권장 (예: WHERE vendor_name ILIKE '%digikey%'). "
-            "키워드: 고객사 판매처 거래처 바이어 납품처 유통사 대리점 누구에게 어디에 판매 "
-            "고객사정보 고객정보 거래처정보 판매처정보 바이어정보 업체정보 누구에게 판매"
-        ),
-        "meta": {"table": "vendors", "type": "table_schema"}
-    },
-    {
-        "doc": (
-            "manufacturers 테이블: 제조사·공급사·납품처·벤더 마스터. 총 69개 업체. "
-            "컬럼: manufacturer_id(INTEGER PK, 제조사 고유 식별자), "
-            "name(VARCHAR, 제조사명, UNIQUE 제약으로 중복 등록 방지). "
-            "주요 제조사 예시: PANASONIC(파나소닉), INTEL(인텔), BROADCOM(브로드컴), XILINX(자일링스), "
-            "MICRON(마이크론), INFINEON(인피니온), MARVELL(마벨), CYPRESS(사이프레스), "
-            "RENESAS(르네사스), TEXAS INSTRUMENTS(텍사스인스트루먼트), SAMSUNG(삼성) 등. "
-            "오타·별칭 주의: BROADCO→BROADCOM, INETL→INTEL, RENASAS→RENESAS 등 오타 빈발. "
-            "조인: purchase_orders.manufacturer_id = manufacturers.manufacturer_id (매입 이력에서 제조사명 JOIN). "
-            "활용: 제조사별 매입 비중, 공급처 다변화 분석, 제조사별 납품 단가 추이, 공급 리스크 분석. "
-            "검색 팁: 제조사명 검색 시 ILIKE 사용 권장 (예: WHERE name ILIKE '%intel%'). "
-            "키워드: 제조사 공급사 납품처 벤더 메이커 브랜드 어디서 구매 공급업체 supplier"
-        ),
-        "meta": {"table": "manufacturers", "type": "table_schema"}
-    },
-    {
-        "doc": (
-            "initial_inventory 테이블: 시스템 운영 시작점(2022-12-31) 기준의 기초 재고 스냅샷. "
-            "컬럼: part_number(품번 VARCHAR PK FK → products.part_number), "
-            "initial_quantity(기초 재고 수량 INTEGER, 200~800개 사이 무작위 부여), "
-            "stock_date(기초 데이터 확정일 DATE, 항상 '2022-12-31' 고정값). "
-            "조인: initial_inventory.part_number = products.part_number (제품 마스터 연결). "
-            "활용: 재고 변동 추적의 시작점. current_products.current_quantity = "
-            "initial_inventory.initial_quantity + SUM(purchase_orders.purchase_quantity) - SUM(sales_orders.sale_quantity) "
-            "공식으로 현재 재고 검증 가능. 기초 재고 대비 증감 분석에 활용. "
-            "키워드: 초기재고 최초입고 시작재고 기초재고 오프닝 opening stock 기준일 재고"
-        ),
-        "meta": {"table": "initial_inventory", "type": "table_schema"}
-    },
-    {
-        "doc": (
-            "테이블 조인 관계(JOIN Map) 및 ERD 구조: "
-            "1) sales_orders.part_number = products.part_number — 판매 이력에 제품 카테고리·표준단가 연결. "
-            "2) purchase_orders.part_number = products.part_number — 매입 이력에 제품 카테고리·표준원가 연결. "
-            "3) sales_orders.vendor_id = vendors.vendor_id — 판매 이력에 고객사명 연결. "
-            "4) purchase_orders.manufacturer_id = manufacturers.manufacturer_id — 매입 이력에 제조사명 연결. "
-            "5) initial_inventory.part_number = products.part_number — 초기 재고에 제품 정보 연결. "
-            "6) current_products.part_number = products.part_number — 현재 재고에 제품 정보 연결. "
-            "관계 유형: products(1) ↔ purchase_orders(N) 일대다, products(1) ↔ sales_orders(N) 일대다, "
-            "vendors(1) ↔ sales_orders(N) 일대다, manufacturers(1) ↔ purchase_orders(N) 일대다. "
-            "핵심 분석 조인 패턴: "
-            "① 매출 분석: sales_orders JOIN products JOIN vendors — 고객사별·카테고리별 매출. "
-            "② 매입 분석: purchase_orders JOIN products JOIN manufacturers — 제조사별·카테고리별 매입. "
-            "③ 손익 분석: sales_orders + purchase_orders를 products 기준으로 통합 — 품목별 매출-매입 마진. "
-            "④ 재고 검증: initial_inventory + purchase_orders - sales_orders = current_products."
-        ),
-        "meta": {"table": "join_relations", "type": "table_schema"}
-    },
-    {
-        "doc": (
-            "비즈니스 용어-SQL 매핑 가이드: "
-            "매출액 = SUM(sales_orders.sale_quantity * sales_orders.actual_selling_price). "
-            "매입액 = SUM(purchase_orders.purchase_quantity * purchase_orders.actual_unit_cost). "
-            "매출총이익(gross profit) = 매출액 - 매입액. "
-            "표준마진율 = (products.std_selling_price - products.std_unit_cost) / products.std_selling_price * 100. "
-            "실제마진율 = (actual_selling_price - actual_unit_cost) / actual_selling_price * 100 (동일 품번 기준). "
-            "판매단가 차이(selling price variance) = actual_selling_price - std_selling_price. "
-            "매입단가 차이(purchase price variance) = actual_unit_cost - std_unit_cost. "
-            "재고회전율 = 총 판매수량 / 평균재고수량. "
-            "현재재고 = current_products.current_quantity (또는 initial_quantity + 총매입수량 - 총판매수량). "
-            "월별 집계 시: DATE_TRUNC('month', sale_date) 또는 EXTRACT(YEAR FROM sale_date), EXTRACT(MONTH FROM sale_date). "
-            "분기별 집계 시: DATE_TRUNC('quarter', sale_date) 또는 EXTRACT(QUARTER FROM sale_date). "
-            "연도별 집계 시: DATE_TRUNC('year', sale_date) 또는 EXTRACT(YEAR FROM sale_date). "
-            "TOP N 조회 시: ORDER BY ... DESC LIMIT N. "
-            "증감률 = (현재값 - 이전값) / 이전값 * 100. "
-            "전년대비 증감률(YoY) = (올해값 - 작년값) / 작년값 * 100. "
-            "전월대비 증감률(MoM) = (이번달값 - 전월값) / 전월값 * 100. "
-            "평균판매단가(ASP) = SUM(sale_quantity * actual_selling_price) / SUM(sale_quantity). "
-            "평균매입단가 = SUM(purchase_quantity * actual_unit_cost) / SUM(purchase_quantity). "
-            "누적매출 = SUM(매출액) OVER (ORDER BY sale_date). "
-            "러닝합계 = SUM(...) OVER (ORDER BY 날짜). "
-            "키워드: 매출액 매입액 이익 마진 마진율 손익 수익 profit margin revenue cost 회전율"
-        ),
-        "meta": {"table": "business_glossary", "type": "table_schema"}
-    },
-    {
-        "doc": (
-            "날짜·기간 필터 가이드: "
-            "데이터 범위 — purchase_orders: 2023-01-01 ~ 2025-12-31, sales_orders: 2023-01-04 ~ 2025-12-31. "
-            "current_products: 날짜 필터 금지, 항상 전체 조회 (last_updated는 참고용). "
-            "initial_inventory: stock_date는 항상 2022-12-31 고정, 필터 불필요. "
-            "products, vendors, manufacturers: 날짜 컬럼 없음 — 시계열 필터 불가. "
-            "'올해'는 CURRENT_DATE 기준 연도. "
-            "'작년'은 CURRENT_DATE - 1 year. "
-            "'재작년'은 CURRENT_DATE - 2 year. "
-            "'이번 달' = DATE_TRUNC('month', CURRENT_DATE). "
-            "'최근 3개월' = sale_date >= CURRENT_DATE - INTERVAL '3 months'. "
-            "'전월' = sale_date >= DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month') "
-            "AND sale_date < DATE_TRUNC('month', CURRENT_DATE). "
-            "'최근 N개월' = sale_date >= CURRENT_DATE - INTERVAL 'N months'. "
-            "'최근 N일' = sale_date >= CURRENT_DATE - INTERVAL 'N days'. "
-            "'상반기' = EXTRACT(MONTH FROM date) BETWEEN 1 AND 6, '하반기' = BETWEEN 7 AND 12. "
-            "'1분기' = Q1(1-3월), '2분기' = Q2(4-6월), '3분기' = Q3(7-9월), '4분기' = Q4(10-12월). "
-            "판매 패턴: 매주 수요일·금요일 정기 납품. 매입 패턴: 매월 1일·15일 배치 발주. "
-            "키워드: 날짜 기간 월별 분기별 연도별 올해 작년 최근 언제 when 추이 트렌드 trend"
-        ),
-        "meta": {"table": "date_filter_guide", "type": "table_schema"}
-    },
-    {
-        "doc": (
-            "부품 카테고리(description) 분류 가이드: "
-            "products.description 및 current_products.description 컬럼에 저장된 카테고리코드 목록. "
-            "IC: 집적회로(Integrated Circuit) — CPU, MCU, FPGA, 메모리 등 반도체 칩. "
-            "FET/TR: 트랜지스터·FET — MOSFET, IGBT 등 스위칭·증폭 소자. "
-            "C_CHIP: 칩 세라믹 콘덴서(MLCC) — 소형 표면실장 커패시터. "
-            "CAP: 일반 커패시터(캐패시터) — 전해, 필름, 탄탈 등. "
-            "R_CHIP: 칩 저항 — 소형 표면실장 저항기. "
-            "RES: 일반 저항(레지스터) — 탄소피막, 금속피막 등. "
-            "카테고리별 집계 시: GROUP BY description 또는 WHERE description = 'IC'. "
-            "LIKE 패턴: WHERE description LIKE '%CHIP%' (칩 부품만), WHERE description IN ('IC','FET/TR') (반도체류). "
-            "키워드: 카테고리 부품종류 IC 반도체 저항 콘덴서 커패시터 칩 분류 타입 type category"
-        ),
-        "meta": {"table": "category_guide", "type": "table_schema"}
-    },
-]
-
+            {
+                "id": "products",
+                "description": "제품 마스터, 부품 목록, 파트 넘버(part_number), 카테고리(IC, FET, TR, C_CHIP), 반도체 규격, 표준 단가(cost), 가격 정보. 제품의 이름, 종류, 단가를 묻는 질문에 참조.",
+                "metadatas": {
+                    "columns": "part_number, description, std_unit_cost, std_selling_price",
+                    "sql": "PK: part_number. 'description'은 카테고리 정보임. 제품 상세 정보 조회 및 거래 테이블 조인 시 기준 테이블로 사용."
+                }
+            },
+            {
+                "id": "manufacturers",
+                "description": "제조사, 공급처, 납품 업체, 부품 생산자 정보. '물건을 어디서 가져왔나?', '특정 제조사 납품 현황' 파악 시 사용.",
+                "metadatas": {
+                    "columns": "manufacturer_id, name",
+                    "sql": "PK: manufacturer_id. purchase_orders와 조인하여 업체명(name) 검색 및 공급처별 통계 집계 시 사용."
+                }
+            },
+            {
+                "id": "vendors",
+                "description": "고객사, 판매처, 거래처, 바이어, 납품처 리스트. '어디로 판매했나?', '고객사별 매출 실적' 분석 시 필수 참조.",
+                "metadatas": {
+                    "columns": "vendor_id, vendor_name",
+                    "sql": "PK: vendor_id. sales_orders와 조인하여 고객사명(vendor_name) 검색 및 매출 통계 보고 시 사용."
+                }
+            },
+            {
+                "id": "initial_inventory",
+                "description": "기초 재고, 2022년 말 초기 수량, 재고 시작점 스냅샷. 현재고 계산을 위한 과거 시작 수량 데이터.",
+                "metadatas": {
+                    "columns": "part_number, initial_quantity, stock_date",
+                    "sql": "PK: part_number. stock_date='2022-12-31' 고정. 수식: (기초재고 + 입고합계 - 출고합계)의 기초 데이터."
+                }
+            },
+            {
+                "id": "current_products",
+                "description": "실시간 현재고, 창고 잔량, 보유 개수. 계산 없이 '지금 현재' 수량만 빠르게 보고 싶을 때 사용.",
+                "metadatas": {
+                    "columns": "part_number, description, current_quantity, last_updated",
+                    "sql": "FK: part_number. 계산 없이 현재 시점의 재고 보유량(current_quantity)을 직접 조회할 때 사용."
+                }
+            },
+            {
+                "id": "purchase_orders",
+                "description": "매입 내역, 입고 이력, 구매 기록, 입고 금액, 월별 매입 현황. 지출 및 물건 도입 기록 분석 시 사용.",
+                "metadatas": {
+                    "columns": "purchase_id, manufacturer_id, part_number, purchase_quantity, purchase_date, actual_unit_cost",
+                    "sql": "PK: purchase_id. 매입액 계산: SUM(purchase_quantity * actual_unit_cost). 기간별/업체별 매입 분석용."
+                }
+            },
+            {
+                "id": "sales_orders",
+                "description": "출고 내역, 판매 이력, 매출 실적, 판매 금액, 고객사 납품량, 월별/주간 매출 분석. 판매 실적 추적 시 사용.",
+                "metadatas": {
+                    "columns": "order_id, vendor_id, part_number, sale_quantity, sale_date, actual_selling_price",
+                    "sql": "PK: order_id. 매출액 계산: SUM(sale_quantity * actual_selling_price). 기간별/고객사별 판매 실적 분석용."
+                }
+            }
+        ]
 # ── 5. 에러 → 해결책 패턴 ────────────────────────────────────
 ERROR_PATTERN_DATA = [
     {
@@ -1183,4 +1039,6 @@ KEYWORD_INTENT_DATA = [
         "meta": {"intent": "growth_analysis", "table": "sales_orders"}
     },
 ]
+
+
 

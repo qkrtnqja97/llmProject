@@ -45,7 +45,7 @@ class SaveConversationNode:
               refined_question=refined_question,
               response_data={"final_answer": final_answer},
               final_sql=sql_query,
-              entity_corrections={},
+              refine_corrections={},
               execution_time_ms=execution_time_ms,
           )
 

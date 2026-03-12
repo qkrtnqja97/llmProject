@@ -14,7 +14,7 @@ class AgentState(TypedDict, total=False):
     refined_question: str
     structured_memory: Dict
 
-    # Entity
+    # Refine
     synonym_hint: str
 
     # Router

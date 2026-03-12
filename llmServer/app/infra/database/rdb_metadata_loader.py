@@ -29,7 +29,7 @@ class RDBMetaRepository:
     # -------------------------------------------------
     async def load_all(self) -> Dict[str, Any]:
         return {
-            "entity_cache": await self.load_entities(),
+            "refine_cache": await self.load_entities(),
             "data_stats": await self.load_date_range(),
             "column_map": await self.load_column_map(),
         }

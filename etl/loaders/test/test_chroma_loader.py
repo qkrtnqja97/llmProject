@@ -36,7 +36,7 @@ def test_collection():
         col = get_collection("fewshot_sql")
         print(f"✅ 컬렉션 접근 성공: {col.name}")
         print(f"현재 데이터 수: {col.count()}")
-        col = get_collection("entity_store")
+        col = get_collection("refine_store")
         print(f"✅ 컬렉션 접근 성공: {col.name}")
         print(f"현재 데이터 수: {col.count()}")
         col = get_collection("table_schema_store")

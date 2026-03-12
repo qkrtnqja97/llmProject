@@ -24,7 +24,7 @@ def build_graph(container):
     # -----------------------------------
 
     graph.add_node("memory", TimedNode("memory", MemoryNode(container)))
-    graph.add_node("entity", TimedNode("entity", RefineNode(container)))
+    graph.add_node("refine", TimedNode("refine", RefineNode(container)))
     graph.add_node("router", TimedNode("router", RouterNode(container)))
     graph.add_node("sql_gen", TimedNode("sql_gen", SQLGenNode(container)))
     graph.add_node("db_exec", TimedNode("db_exec", ExecuteDBNode(container)))
@@ -38,8 +38,8 @@ def build_graph(container):
 
     graph.set_entry_point("memory")
 
-    graph.add_edge("memory", "entity")
-    graph.add_edge("entity", "router")
+    graph.add_edge("memory", "refine")
+    graph.add_edge("refine", "router")
 
     # -----------------------------------
     # Router 분기

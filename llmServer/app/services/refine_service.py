@@ -1,4 +1,4 @@
-# llmServer/app/services/entity_service.py
+# llmServer/app/services/refine_service.py
 
 from app.utils import text_util
 
@@ -7,7 +7,7 @@ from app.services.rerank_service import RerankService
 from app.infra.vector.vector_repository import VectorRepository
 
 
-class EntityResolverService:
+class RefineService:
     """
     ============================================================
     [Domain Role]
@@ -46,7 +46,7 @@ class EntityResolverService:
 
     2) _vector_correct_part_number()
        - 벡터 검색 (top_k=3)
-       - distance < ENTITY_DISTANCE_THRESHOLD
+       - distance < REFINE_DISTANCE_THRESHOLD
        - type == "part_number"
        - 문자열 2차 검증 후 치환
 
@@ -75,7 +75,9 @@ class EntityResolverService:
     Graph Flow:
         question
             ↓
-        entity_resolver
+        memory
+            ↓    
+        refine
             ↓
         router
             ↓
@@ -83,19 +85,19 @@ class EntityResolverService:
     ============================================================
     """
 
-    ENTITY_FETCH_TOP_K = 3
-    ENTITY_DISTANCE_THRESHOLD = 0.15
+    REFINE_FETCH_TOP_K = 3
+    REFINE_DISTANCE_THRESHOLD = 0.15
     FUZZY_THRESHOLD = 70
     SYNONYM_RERANK_THRESHOLD = 0.05
     SYNONYM_FETCH_TOP_K = 10
 
     def __init__(
         self,
-        entity_cache: dict,
+        refine_cache: dict,
         vector_repository: VectorRepository,
         reranker: RerankService,
     ):
-        self.entity_cache = entity_cache
+        self.refine_cache = refine_cache
         self.vector_repository = vector_repository
         self.reranker = reranker
 
@@ -106,7 +108,7 @@ class EntityResolverService:
     # =========================
     def _fuzzy_correct(self, question: str) -> str:
         refined = question
-        names = self.entity_cache.get("manufacturers", []) + self.entity_cache.get(
+        names = self.refine_cache.get("manufacturers", []) + self.refine_cache.get(
             "vendors", []
         )
         # print("DEBUG names in fuzzy:", names)
@@ -124,23 +126,23 @@ class EntityResolverService:
     # 2. part_number 벡터 보정
     # 1 관문 : 벡터 디비에서 유사도 검색
     # 2 관문 : 1관문 통과되면 문자열 비교
-    # 2차: entity_store 벡터 검색으로 part_number 오타 보정 (준협 주석)
+    # 2차: refine_store 벡터 검색으로 part_number 오타 보정 (준협 주석)
     # =========================
     async def _vector_correct_part_number(self, question: str) -> str:
         refined = question
 
         # 파트넘버 벡터 유사도 비교 (top_k 설정 가능. default:3)
         candidates = await self.vector_repository.search_by_text(
-            collection_name="entity_store",
+            collection_name="refine_store",
             query_text=question,
-            top_k=self.ENTITY_FETCH_TOP_K,
+            top_k=self.REFINE_FETCH_TOP_K,
         )
         # print("DEBUG candidates in part_num:", candidates)
         
         for doc, meta, dist in candidates:
             # 1관문: 벡터 거리 체크
             if (
-                dist < self.ENTITY_DISTANCE_THRESHOLD
+                dist < self.REFINE_DISTANCE_THRESHOLD
                 and meta.get("type") == "part_number"
             ):
                 # 2관문: 벡터 공간에서 비교했다면 -> 문자열로 세부 비교 (Utils 호출)

@@ -25,7 +25,7 @@ class MemoryService:
     2️⃣ Conversation Persistence
         - 최종 질문/응답/SQL 저장
 
-    EntityResolver와 다름.
+    Refine과 다름.
     → 이 서비스는 "대화 상태 관리" 책임을 가진다.
 
     ============================================================
@@ -47,7 +47,7 @@ class MemoryService:
     - final_answer
     - sql_query
     - execution_time_ms
-    - entity_corrections
+    - refine_corrections
 
     ============================================================
     [Failure Policy]
@@ -233,7 +233,7 @@ class MemoryService:
         refined_question: str,
         response_data: Dict,
         final_sql: Optional[str],
-        entity_corrections: Dict,
+        refine_corrections: Dict,
         execution_time_ms: int,
     ):
         """
@@ -250,6 +250,6 @@ class MemoryService:
             refined_question=refined_question,
             response_data=response_data,
             final_sql=final_sql,
-            entity_corrections=entity_corrections,
+            refine_corrections=refine_corrections,
             execution_time_ms=execution_time_ms,
         )

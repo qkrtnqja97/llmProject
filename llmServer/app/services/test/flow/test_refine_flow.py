@@ -1,5 +1,5 @@
-# llmServer/app/services/test/flow/test_entity_flow.py
-# PYTHONPATH=. python -m app.services.test.flow.test_entity_flow
+# llmServer/app/services/test/flow/test_refine_flow.py
+# PYTHONPATH=. python -m app.services.test.flow.test_refine_flow
 
 import asyncio
 
@@ -20,7 +20,7 @@ async def main():
 
     try:
         container = await get_container()
-        entity_service = container.entity_service
+        refine_service = container.refine_service
 
         questions = [
             "티아이 제품 ADS62C15IRGCT 재고 알려줘",
@@ -29,7 +29,7 @@ async def main():
         ]
 
         for question in questions:
-            result = await entity_service.resolve(question)
+            result = await refine_service.resolve(question)
             print(result)
 
     finally:

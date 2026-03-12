@@ -4,12 +4,12 @@ services:
   # --- 프론트엔드 (추가됨) ---
   frontend:
     build:
-      context: ../../frontend_2 # 프론트엔드 Dockerfile 위치
+      context: ../../frontend # 프론트엔드 Dockerfile 위치
     container_name: frontend
     ports:
       - "5173:5173"
     volumes:
-      - ../../frontend_2:/frontendWorkspace
+      - ../../frontend:/frontendWorkspace
       # node_modules는 호스트와 컨테이너가 섞이지 않게 익명 볼륨으로 보호합니다.
       - /frontendWorkspace/node_modules
     environment:

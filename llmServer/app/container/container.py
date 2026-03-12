@@ -6,7 +6,7 @@ from app.infra.vector.vector_repository import VectorRepository
 from app.infra.database.rdb_repository import RDBRepository
 from app.infra.database.conversation_repository import ConversationRepository
 
-from app.services.entity_service import EntityResolverService
+from app.services.refine_service import RefineService
 from app.services.router_service import RouterService
 from app.services.llm_service import LLMService
 from app.services.rerank_service import RerankService
@@ -65,8 +65,8 @@ class ServiceContainer:
             conversation_repository=conversation_repository
         )
 
-        self.entity_service = EntityResolverService(
-            entity_cache=metadata_bundle.entity_cache,
+        self.refine_service = RefineService(
+            refine_cache=metadata_bundle.refine_cache,
             vector_repository=vector_repository,
             reranker=self.rerank_service,
         )

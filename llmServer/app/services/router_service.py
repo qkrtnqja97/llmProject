@@ -56,7 +56,7 @@ class RouterService:
 
     memory_node
         ↓
-    entity_node
+    refine_node
         ↓
     router_node  ← 분기점
         ↓

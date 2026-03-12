@@ -20,7 +20,7 @@ async def main():
     try:
         container = await get_container()
 
-        entity_service = container.entity_service
+        refine_service = container.refine_service
         router_service = container.router_service
 
         # questions = [
@@ -43,8 +43,8 @@ async def main():
             print("\n" + "=" * 80)
             print("🔎 원본 질문:", question)
 
-            # 1️⃣ Entity 정제
-            refined = await entity_service.resolve(question)
+            # 1️⃣ Refine 정제
+            refined = await refine_service.resolve(question)
             refined_question = refined["refined_question"]
 
             print("🔧 정제 질문:", refined_question)

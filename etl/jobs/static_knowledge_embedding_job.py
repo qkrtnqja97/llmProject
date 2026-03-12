@@ -129,7 +129,7 @@ def run():
 
         synonym_docs.append(doc)
         synonym_ids.append(f"synonym_{i}")
-        synonym_meta.append({"type": "synonym", "entity_type": item["type"]})
+        synonym_meta.append({"type": "synonym", "refine_type": item["type"]})
 
     process_collection("SB_synonym_store", synonym_docs, synonym_ids, synonym_meta)
 

@@ -100,7 +100,7 @@ async def create_metadata_bundle(rdb_repository) -> dict:
     schema_context = builder.build(raw_meta["column_map"])
 
     metadata_bundle = MetadataBundle(
-        entity_cache=raw_meta["entity_cache"],
+        refine_cache=raw_meta["refine_cache"],
         column_map=raw_meta["column_map"],
         data_stats=raw_meta["data_stats"],
         schema_context=schema_context,

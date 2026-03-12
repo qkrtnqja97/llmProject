@@ -36,12 +36,12 @@ async def main():
 
 
     # ----------------------------
-    # entity 확인
+    # refine 확인
     # ----------------------------
-    print("=== ENTITY CACHE ===")
-    print("manufacturers 개수:", len(meta["entity_cache"]["manufacturers"]))
-    print("vendors 개수:", len(meta["entity_cache"]["vendors"]))
-    print("sample manufacturers:", meta["entity_cache"]["manufacturers"][:5])
+    print("=== refine CACHE ===")
+    print("manufacturers 개수:", len(meta["refine_cache"]["manufacturers"]))
+    print("vendors 개수:", len(meta["refine_cache"]["vendors"]))
+    print("sample manufacturers:", meta["refine_cache"]["manufacturers"][:5])
     print()
 
     # ----------------------------

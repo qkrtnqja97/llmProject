@@ -1,4 +1,4 @@
-# etl/jobs/entity_embedding_job.py
+# etl/jobs/refine_embedding_job.py
 
 import sys
 import time
@@ -40,7 +40,7 @@ def embed_with_rate_limit(embedder, documents, batch_size=100):
 
 def run():
 
-    print("🚀 SB_entity_store 임베딩 시작")
+    print("🚀 SB_refine_store 임베딩 시작")
 
     engine, proc = connect_postgres()
     if engine is None:
@@ -48,7 +48,7 @@ def run():
         return
 
     embedder = GeminiEmbedder()
-    collection = get_collection("SB_entity_store")
+    collection = get_collection("SB_refine_store")
 
     docs = []
     metas = []
@@ -129,7 +129,7 @@ vendor_id {vid}
         metadatas=metas
     )
 
-    print("✅ SB_entity_store 적재 완료")
+    print("✅ SB_refine_store 적재 완료")
 
     proc.terminate()
     print("🔒 터널 종료")

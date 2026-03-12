@@ -2,7 +2,7 @@
 
 from rapidfuzz import process, fuzz
 
-# ================== 1번 노드 entity_service==================
+# ================== 1번 노드 refine_service==================
 
 # 1차 필터 수식 --> fuzz, ratio 관련해서 알아봐라!!!!!!
 # 유사도 (threshold) 값보다 유사하면 해당 제조사 / 벤더사 이름 반환.

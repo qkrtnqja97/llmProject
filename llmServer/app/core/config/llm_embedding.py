@@ -8,10 +8,10 @@ class LLM_EMBEDDING_Settings(BaseAppSettings):
     LLM_MODEL: str
     EMBEDDING_MODEL: str
 
-    router_model: str = "gemini-2.5-flash"
-    sql_model: str = "gemini-2.5-flash"
-    answer_model: str = "gemini-2.5-flash"
-    chitchat_model: str = "gemini-2.5-flash"
+    router_model: str = "gemini-2.5-flash-lite"
+    sql_model: str = "gemini-2.5-flash-lite"
+    answer_model: str = "gemini-2.5-flash-lite"
+    chitchat_model: str = "gemini-2.5-flash-lite"
     
     AZURE_OPENAI_API_KEY: str
     AZURE_OPENAI_ENDPOINT: str

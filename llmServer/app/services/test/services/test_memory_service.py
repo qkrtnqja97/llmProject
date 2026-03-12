@@ -37,7 +37,7 @@ async def run_memory_full_test():
         refined_question="2023년도도 그려줘",
         response_data={"answer": "2024년 월별 매출 데이터입니다."},
         final_sql="SELECT EXTRACT(YEAR FROM sale_date)=2024 FROM sales",
-        entity_corrections={},
+        refine_corrections={},
         execution_time_ms=100,
     )
 
@@ -76,7 +76,7 @@ async def run_memory_full_test():
         refined_question="ABC123 제품의 매출을 조회하세요",
         response_data={"answer": "ABC123 제품의 매출은 120000원입니다."},
         final_sql="SELECT * FROM sales WHERE part_number='ABC123'",
-        entity_corrections={},
+        refine_corrections={},
         execution_time_ms=100,
     )
 
