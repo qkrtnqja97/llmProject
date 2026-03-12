@@ -1,770 +1,7 @@
 # 셀 3: 정적 데이터 정의
 # ※ 예시/동의어/용어/스키마/에러패턴 추가 시 이 셀만 수정
 
-# ── 1. Few-shot SQL 예시 (질문-SQL 쌍) ──────────────────────
-FEWSHOT_EXAMPLES = [
-    {
-        "q": "지금 재고 제일 많은 품목",
-        "sql": "SELECT cp.part_number, p.description, cp.current_quantity FROM current_products cp JOIN products p ON cp.part_number=p.part_number ORDER BY cp.current_quantity DESC LIMIT 1"
-    },
-    {
-        "q": "재고 상위 10개 품목",
-        "sql": "SELECT cp.part_number, p.description, cp.current_quantity FROM current_products cp JOIN products p ON cp.part_number=p.part_number ORDER BY cp.current_quantity DESC LIMIT 10"
-    },
-    {
-        "q": "재고 하위 10개 품목",
-        "sql": "SELECT cp.part_number, p.description, cp.current_quantity FROM current_products cp JOIN products p ON cp.part_number=p.part_number ORDER BY cp.current_quantity ASC LIMIT 10"
-    },
-    {
-        "q": "재고 없는 품목",
-        "sql": "SELECT cp.part_number, p.description FROM current_products cp JOIN products p ON cp.part_number=p.part_number WHERE cp.current_quantity=0"
-    },
-    {
-        "q": "재고 100개 미만 품목",
-        "sql": "SELECT cp.part_number, p.description, cp.current_quantity FROM current_products cp JOIN products p ON cp.part_number=p.part_number WHERE cp.current_quantity < 100 ORDER BY cp.current_quantity ASC"
-    },
-    {
-        "q": "전체 재고 총 수량",
-        "sql": "SELECT SUM(current_quantity) AS total_stock FROM current_products"
-    },
-    {
-        "q": "전체 재고 자산 가치",
-        "sql": "SELECT SUM(cp.current_quantity * p.std_unit_cost) AS stock_value FROM current_products cp JOIN products p ON cp.part_number=p.part_number"
-    },
-    {
-        "q": "카테고리별 재고 현황",
-        "sql": "SELECT p.description AS category, COUNT(*) AS item_count, SUM(cp.current_quantity) AS total_qty FROM current_products cp JOIN products p ON cp.part_number=p.part_number GROUP BY p.description ORDER BY total_qty DESC"
-    },
-    {
-        "q": "IC 재고 현황",
-        "sql": "SELECT cp.part_number, cp.current_quantity FROM current_products cp WHERE cp.description='IC' ORDER BY cp.current_quantity DESC"
-    },
-    {
-        "q": "C_CHIP/CAP 재고 현황",
-        "sql": "SELECT cp.part_number, cp.current_quantity FROM current_products cp WHERE cp.description='C_CHIP/CAP' ORDER BY cp.current_quantity DESC"
-    },
-    {
-        "q": "R_CHIP/RES 재고 현황",
-        "sql": "SELECT cp.part_number, cp.current_quantity FROM current_products cp WHERE cp.description='R_CHIP/RES' ORDER BY cp.current_quantity DESC"
-    },
-    {
-        "q": "데드스톡 품목",
-        "sql": "SELECT cp.part_number, p.description, cp.current_quantity FROM current_products cp JOIN products p ON cp.part_number=p.part_number WHERE cp.part_number NOT IN (SELECT DISTINCT part_number FROM sales_orders WHERE sale_date >= CURRENT_DATE - INTERVAL '6 months') AND cp.current_quantity > 0 ORDER BY cp.current_quantity DESC"
-    },
-    {
-        "q": "이번달 매출 총액",
-        "sql": "SELECT SUM(sale_quantity * actual_selling_price) AS total_revenue FROM sales_orders WHERE DATE_TRUNC('month', sale_date)=DATE_TRUNC('month', CURRENT_DATE)"
-    },
-    {
-        "q": "저번달 매출 총액",
-        "sql": "SELECT SUM(sale_quantity * actual_selling_price) AS total_revenue FROM sales_orders WHERE DATE_TRUNC('month', sale_date)=DATE_TRUNC('month', CURRENT_DATE - INTERVAL '1 month')"
-    },
-    {
-        "q": "올해 매출 총액",
-        "sql": "SELECT SUM(sale_quantity * actual_selling_price) AS total_revenue FROM sales_orders WHERE EXTRACT(YEAR FROM sale_date)=EXTRACT(YEAR FROM CURRENT_DATE)"
-    },
-    {
-        "q": "작년 매출 총액",
-        "sql": "SELECT SUM(sale_quantity * actual_selling_price) AS total_revenue FROM sales_orders WHERE EXTRACT(YEAR FROM sale_date)=EXTRACT(YEAR FROM CURRENT_DATE)-1"
-    },
-    {
-        "q": "2024년 월별 매출 추이",
-        "sql": "SELECT DATE_TRUNC('month', sale_date) AS month, SUM(sale_quantity * actual_selling_price) AS revenue FROM sales_orders WHERE EXTRACT(YEAR FROM sale_date)=2024 GROUP BY month ORDER BY month"
-    },
-    {
-        "q": "2023년 월별 매출 추이",
-        "sql": "SELECT DATE_TRUNC('month', sale_date) AS month, SUM(sale_quantity * actual_selling_price) AS revenue FROM sales_orders WHERE EXTRACT(YEAR FROM sale_date)=2023 GROUP BY month ORDER BY month"
-    },
-    {
-        "q": "최근 3개월 매출 비교",
-        "sql": "SELECT DATE_TRUNC('month', sale_date) AS month, SUM(sale_quantity * actual_selling_price) AS revenue FROM sales_orders WHERE sale_date >= CURRENT_DATE - INTERVAL '3 months' GROUP BY month ORDER BY month"
-    },
-    {
-        "q": "올해 vs 작년 매출 비교",
-        "sql": "SELECT EXTRACT(YEAR FROM sale_date) AS year, SUM(sale_quantity * actual_selling_price) AS revenue FROM sales_orders WHERE EXTRACT(YEAR FROM sale_date) >= EXTRACT(YEAR FROM CURRENT_DATE)-1 GROUP BY year ORDER BY year"
-    },
-    {
-        "q": "가장 많이 팔린 품목 탑 10",
-        "sql": "SELECT so.part_number, p.description, SUM(so.sale_quantity) AS total_qty FROM sales_orders so JOIN products p ON so.part_number=p.part_number GROUP BY so.part_number, p.description ORDER BY total_qty DESC LIMIT 10"
-    },
-    {
-        "q": "매출액 상위 품목 탑 10",
-        "sql": "SELECT so.part_number, p.description, SUM(so.sale_quantity * so.actual_selling_price) AS revenue FROM sales_orders so JOIN products p ON so.part_number=p.part_number GROUP BY so.part_number, p.description ORDER BY revenue DESC LIMIT 10"
-    },
-    {
-        "q": "카테고리별 매출 현황",
-        "sql": "SELECT p.description AS category, SUM(so.sale_quantity) AS total_qty, SUM(so.sale_quantity * so.actual_selling_price) AS revenue FROM sales_orders so JOIN products p ON so.part_number=p.part_number GROUP BY p.description ORDER BY revenue DESC"
-    },
-    {
-        "q": "매출 가장 많은 고객사 탑 5",
-        "sql": "SELECT v.vendor_name, SUM(so.sale_quantity * so.actual_selling_price) AS revenue FROM sales_orders so JOIN vendors v ON so.vendor_id=v.vendor_id GROUP BY v.vendor_name ORDER BY revenue DESC LIMIT 5"
-    },
-    {
-        "q": "고객사별 매출 현황 전체",
-        "sql": "SELECT v.vendor_name, COUNT(DISTINCT so.order_id) AS order_count, SUM(so.sale_quantity) AS total_qty, SUM(so.sale_quantity * so.actual_selling_price) AS revenue FROM sales_orders so JOIN vendors v ON so.vendor_id=v.vendor_id GROUP BY v.vendor_name ORDER BY revenue DESC"
-    },
-    {
-        "q": "Digikey 매출 현황",
-        "sql": "SELECT so.part_number, p.description, SUM(so.sale_quantity) AS qty, SUM(so.sale_quantity * so.actual_selling_price) AS revenue FROM sales_orders so JOIN vendors v ON so.vendor_id=v.vendor_id JOIN products p ON so.part_number=p.part_number WHERE v.vendor_name='Digikey' GROUP BY so.part_number, p.description ORDER BY revenue DESC"
-    },
-    {
-        "q": "Mouser 매출 현황",
-        "sql": "SELECT so.part_number, SUM(so.sale_quantity) AS qty, SUM(so.sale_quantity * so.actual_selling_price) AS revenue FROM sales_orders so JOIN vendors v ON so.vendor_id=v.vendor_id WHERE v.vendor_name='Mouser' GROUP BY so.part_number ORDER BY revenue DESC"
-    },
-    {
-        "q": "Farnell 매출 현황",
-        "sql": "SELECT so.part_number, SUM(so.sale_quantity) AS qty, SUM(so.sale_quantity * so.actual_selling_price) AS revenue FROM sales_orders so JOIN vendors v ON so.vendor_id=v.vendor_id WHERE v.vendor_name='Farnell' GROUP BY so.part_number ORDER BY revenue DESC"
-    },
-    {
-        "q": "RS 매출 현황",
-        "sql": "SELECT so.part_number, SUM(so.sale_quantity) AS qty, SUM(so.sale_quantity * so.actual_selling_price) AS revenue FROM sales_orders so JOIN vendors v ON so.vendor_id=v.vendor_id WHERE v.vendor_name='RS' GROUP BY so.part_number ORDER BY revenue DESC"
-    },
-    {
-        "q": "TI 매출 현황",
-        "sql": "SELECT so.part_number, SUM(so.sale_quantity) AS qty, SUM(so.sale_quantity * so.actual_selling_price) AS revenue FROM sales_orders so JOIN vendors v ON so.vendor_id=v.vendor_id WHERE v.vendor_name='TI' GROUP BY so.part_number ORDER BY revenue DESC"
-    },
-    {
-        "q": "ST 매출 현황",
-        "sql": "SELECT so.part_number, SUM(so.sale_quantity) AS qty, SUM(so.sale_quantity * so.actual_selling_price) AS revenue FROM sales_orders so JOIN vendors v ON so.vendor_id=v.vendor_id WHERE v.vendor_name='ST' GROUP BY so.part_number ORDER BY revenue DESC"
-    },
-    {
-        "q": "ROHM 매출 현황",
-        "sql": "SELECT so.part_number, SUM(so.sale_quantity) AS qty, SUM(so.sale_quantity * so.actual_selling_price) AS revenue FROM sales_orders so JOIN vendors v ON so.vendor_id=v.vendor_id WHERE v.vendor_name='ROHM' GROUP BY so.part_number ORDER BY revenue DESC"
-    },
-    {
-        "q": "최근 6개월 거래 없는 고객사",
-        "sql": "SELECT v.vendor_name FROM vendors v WHERE v.vendor_id NOT IN (SELECT DISTINCT vendor_id FROM sales_orders WHERE sale_date >= CURRENT_DATE - INTERVAL '6 months') ORDER BY v.vendor_name"
-    },
-    {
-        "q": "이번달 매입 총액",
-        "sql": "SELECT SUM(purchase_quantity * actual_unit_cost) AS total_purchase FROM purchase_orders WHERE DATE_TRUNC('month', purchase_date)=DATE_TRUNC('month', CURRENT_DATE)"
-    },
-    {
-        "q": "올해 매입 총액",
-        "sql": "SELECT SUM(purchase_quantity * actual_unit_cost) AS total_purchase FROM purchase_orders WHERE EXTRACT(YEAR FROM purchase_date)=EXTRACT(YEAR FROM CURRENT_DATE)"
-    },
-    {
-        "q": "2024년 월별 매입 추이",
-        "sql": "SELECT DATE_TRUNC('month', purchase_date) AS month, SUM(purchase_quantity * actual_unit_cost) AS purchase_amount FROM purchase_orders WHERE EXTRACT(YEAR FROM purchase_date)=2024 GROUP BY month ORDER BY month"
-    },
-    {
-        "q": "매입 많은 제조사 탑 5",
-        "sql": "SELECT m.name, SUM(po.purchase_quantity) AS total_qty, SUM(po.purchase_quantity * po.actual_unit_cost) AS total_amount FROM purchase_orders po JOIN manufacturers m ON po.manufacturer_id=m.manufacturer_id GROUP BY m.name ORDER BY total_amount DESC LIMIT 5"
-    },
-    {
-        "q": "PANASONIC 납품 현황",
-        "sql": "SELECT po.part_number, p.description, SUM(po.purchase_quantity) AS qty FROM purchase_orders po JOIN manufacturers m ON po.manufacturer_id=m.manufacturer_id JOIN products p ON po.part_number=p.part_number WHERE m.name='PANASONIC' GROUP BY po.part_number, p.description ORDER BY qty DESC"
-    },
-    {
-        "q": "INTEL 납품 현황",
-        "sql": "SELECT po.part_number, SUM(po.purchase_quantity) AS qty FROM purchase_orders po JOIN manufacturers m ON po.manufacturer_id=m.manufacturer_id WHERE m.name IN ('INTEL','INETL') GROUP BY po.part_number ORDER BY qty DESC"
-    },
-    {
-        "q": "BROADCOM 납품 현황",
-        "sql": "SELECT po.part_number, SUM(po.purchase_quantity) AS qty FROM purchase_orders po JOIN manufacturers m ON po.manufacturer_id=m.manufacturer_id WHERE m.name IN ('BROADCOM','BROADCO','BROMDCOM','BRPADCOM') GROUP BY po.part_number ORDER BY qty DESC"
-    },
-    {
-        "q": "제조사별 납품 현황 전체",
-        "sql": "SELECT m.name, SUM(po.purchase_quantity) AS total_qty, SUM(po.purchase_quantity * po.actual_unit_cost) AS total_amount FROM purchase_orders po JOIN manufacturers m ON po.manufacturer_id=m.manufacturer_id GROUP BY m.name ORDER BY total_amount DESC"
-    },
-    {
-        "q": "최근 6개월 거래 없는 제조사",
-        "sql": "SELECT m.name FROM manufacturers m WHERE m.manufacturer_id NOT IN (SELECT DISTINCT manufacturer_id FROM purchase_orders WHERE purchase_date >= CURRENT_DATE - INTERVAL '6 months') ORDER BY m.name"
-    },
-    {
-        "q": "마진율 높은 제품 상위 10개",
-        "sql": "SELECT p.part_number, p.description, ROUND((p.std_selling_price - p.std_unit_cost)/p.std_unit_cost*100, 2) AS margin_pct FROM products p WHERE p.std_unit_cost > 0 ORDER BY margin_pct DESC LIMIT 10"
-    },
-    {
-        "q": "이번달 매출 총이익",
-        "sql": "SELECT SUM(so.sale_quantity * (so.actual_selling_price - p.std_unit_cost)) AS gross_profit FROM sales_orders so JOIN products p ON so.part_number=p.part_number WHERE DATE_TRUNC('month', so.sale_date)=DATE_TRUNC('month', CURRENT_DATE)"
-    },
-    {
-        "q": "올해 매출 총이익",
-        "sql": "SELECT SUM(so.sale_quantity * (so.actual_selling_price - p.std_unit_cost)) AS gross_profit FROM sales_orders so JOIN products p ON so.part_number=p.part_number WHERE EXTRACT(YEAR FROM so.sale_date)=EXTRACT(YEAR FROM CURRENT_DATE)"
-    },
-    {
-        "q": "품목별 수익성 분석",
-        "sql": "SELECT so.part_number, p.description, SUM(so.sale_quantity * so.actual_selling_price) AS revenue, SUM(so.sale_quantity * (so.actual_selling_price - p.std_unit_cost)) AS profit FROM sales_orders so JOIN products p ON so.part_number=p.part_number GROUP BY so.part_number, p.description ORDER BY profit DESC LIMIT 20"
-    },
-    {
-        "q": "고객사별 수익성 분석",
-        "sql": "SELECT v.vendor_name, SUM(so.sale_quantity * so.actual_selling_price) AS revenue, SUM(so.sale_quantity * (so.actual_selling_price - p.std_unit_cost)) AS profit FROM sales_orders so JOIN vendors v ON so.vendor_id=v.vendor_id JOIN products p ON so.part_number=p.part_number GROUP BY v.vendor_name ORDER BY profit DESC"
-    },
-    {
-        "q": "실제 매입단가 vs 표준단가 비교",
-        "sql": "SELECT po.part_number, p.std_unit_cost, ROUND(AVG(po.actual_unit_cost),2) AS avg_actual, ROUND(AVG(po.actual_unit_cost)-p.std_unit_cost,2) AS diff FROM purchase_orders po JOIN products p ON po.part_number=p.part_number GROUP BY po.part_number, p.std_unit_cost ORDER BY diff DESC LIMIT 20"
-    },
-    {
-        "q": "재고회전율 계산",
-        "sql": "SELECT cp.part_number, p.description, COALESCE(SUM(so.sale_quantity),0) AS sold_qty, cp.current_quantity, CASE WHEN cp.current_quantity>0 THEN ROUND(COALESCE(SUM(so.sale_quantity),0)::NUMERIC/cp.current_quantity,2) ELSE NULL END AS turnover FROM current_products cp JOIN products p ON cp.part_number=p.part_number LEFT JOIN sales_orders so ON cp.part_number=so.part_number GROUP BY cp.part_number, p.description, cp.current_quantity ORDER BY turnover DESC NULLS LAST LIMIT 20"
-    },
-    {
-        "q": "판매 느린 품목",
-        "sql": "SELECT cp.part_number, p.description, cp.current_quantity, COALESCE(SUM(so.sale_quantity),0) AS sold_90days FROM current_products cp JOIN products p ON cp.part_number=p.part_number LEFT JOIN sales_orders so ON cp.part_number=so.part_number AND so.sale_date>=CURRENT_DATE-INTERVAL '90 days' GROUP BY cp.part_number, p.description, cp.current_quantity HAVING cp.current_quantity>0 ORDER BY COALESCE(SUM(so.sale_quantity),0)::NUMERIC/cp.current_quantity ASC LIMIT 20"
-    },
-    {
-        "q": "ABC 분석",
-        "sql": "WITH sr AS (SELECT part_number, SUM(sale_quantity*actual_selling_price) AS rev, SUM(SUM(sale_quantity*actual_selling_price)) OVER() AS total FROM sales_orders GROUP BY part_number), cum AS (SELECT part_number, rev, SUM(rev/total*100) OVER(ORDER BY rev DESC) AS cum_pct FROM sr) SELECT part_number, ROUND(rev,0) AS revenue, ROUND(cum_pct,1) AS cum_pct, CASE WHEN cum_pct<=80 THEN 'A' WHEN cum_pct<=95 THEN 'B' ELSE 'C' END AS grade FROM cum ORDER BY rev DESC"
-    },
-    {
-        "q": "2024년 1분기 매출액",
-        "sql": "SELECT SUM(sale_quantity * actual_selling_price) AS revenue FROM sales_orders WHERE EXTRACT(YEAR FROM sale_date) = 2024 AND EXTRACT(QUARTER FROM sale_date) = 1"
-    },
-    {
-        "q": "품번이 80-CBR로 시작하는 부품 재고",
-        "sql": "SELECT cp.part_number, cp.current_quantity FROM current_products cp WHERE cp.part_number LIKE '80-CBR%'"
-    },
-    {
-        "q": "이번 달 평균 판매 단가(ASP)",
-        "sql": "SELECT ROUND(SUM(sale_quantity * actual_selling_price) / SUM(sale_quantity), 0) AS asp FROM sales_orders WHERE DATE_TRUNC('month', sale_date) = DATE_TRUNC('month', CURRENT_DATE)"
-    },
-    {
-        "q": "초기재고와 현재고 차이가 가장 큰 제품",
-        "sql": """WITH inventory_diff AS (
-    SELECT cp.part_number, p.description, ii.initial_quantity, cp.current_quantity,
-           (cp.current_quantity - ii.initial_quantity) AS diff,
-           ABS(cp.current_quantity - ii.initial_quantity) AS abs_diff
-    FROM current_products cp
-    JOIN initial_inventory ii ON cp.part_number = ii.part_number
-    JOIN products p ON cp.part_number = p.part_number
-)
-SELECT part_number, description, initial_quantity, current_quantity, diff
-FROM inventory_diff ORDER BY abs_diff DESC LIMIT 1"""
-    },
-    {
-        "q": "초기재고 대비 현재고 변동량 상위 10개",
-        "sql": """WITH inventory_diff AS (
-    SELECT cp.part_number, p.description, ii.initial_quantity, cp.current_quantity,
-           (cp.current_quantity - ii.initial_quantity) AS diff,
-           ABS(cp.current_quantity - ii.initial_quantity) AS abs_diff
-    FROM current_products cp
-    JOIN initial_inventory ii ON cp.part_number = ii.part_number
-    JOIN products p ON cp.part_number = p.part_number
-)
-SELECT part_number, description, initial_quantity, current_quantity, diff
-FROM inventory_diff ORDER BY abs_diff DESC LIMIT 10"""
-    },
-    {
-        "q": "초기재고보다 현재고가 많이 줄어든 제품",
-        "sql": """WITH inventory_diff AS (
-    SELECT cp.part_number, p.description, ii.initial_quantity, cp.current_quantity,
-           (cp.current_quantity - ii.initial_quantity) AS diff
-    FROM current_products cp
-    JOIN initial_inventory ii ON cp.part_number = ii.part_number
-    JOIN products p ON cp.part_number = p.part_number
-)
-SELECT part_number, description, initial_quantity, current_quantity, diff
-FROM inventory_diff WHERE diff < 0 ORDER BY diff ASC LIMIT 10"""
-    },
-    {
-        "q": "카테고리별 초기재고 vs 현재고 비교",
-        "sql": """WITH inventory_diff AS (
-    SELECT p.description AS category,
-           SUM(ii.initial_quantity) AS total_initial,
-           SUM(cp.current_quantity) AS total_current,
-           SUM(cp.current_quantity - ii.initial_quantity) AS total_diff
-    FROM current_products cp
-    JOIN initial_inventory ii ON cp.part_number = ii.part_number
-    JOIN products p ON cp.part_number = p.part_number
-    GROUP BY p.description
-)
-SELECT category, total_initial, total_current, total_diff
-FROM inventory_diff ORDER BY ABS(total_diff) DESC"""
-    },
-    {
-        "q": "초기재고 대비 현재고 감소율이 가장 높은 제품",
-        "sql": """WITH inventory_diff AS (
-    SELECT cp.part_number, p.description, ii.initial_quantity, cp.current_quantity,
-           ROUND((ii.initial_quantity - cp.current_quantity)::NUMERIC
-                 / NULLIF(ii.initial_quantity,0) * 100, 1) AS decrease_pct
-    FROM current_products cp
-    JOIN initial_inventory ii ON cp.part_number = ii.part_number
-    JOIN products p ON cp.part_number = p.part_number
-    WHERE ii.initial_quantity > 0
-)
-SELECT part_number, description, initial_quantity, current_quantity, decrease_pct
-FROM inventory_diff WHERE decrease_pct > 0 ORDER BY decrease_pct DESC LIMIT 10"""
-    },
-    {
-        "q": "특정 부품의 총 구매량과 총 판매량 조회",
-        "sql": "SELECT (SELECT SUM(purchase_quantity) FROM purchase_orders WHERE part_number = 'CYP15G0401DXB-BGXI') AS total_purchase_quantity, (SELECT SUM(sale_quantity) FROM sales_orders WHERE part_number = 'CYP15G0401DXB-BGXI') AS total_sale_quantity"
-    },
-    {
-        "q": "ABC-123 부품의 누적 판매량과 누적 구매량은?",
-        "sql": "SELECT (SELECT SUM(purchase_quantity) FROM purchase_orders WHERE part_number = 'ABC-123') AS total_purchase_quantity, (SELECT SUM(sale_quantity) FROM sales_orders WHERE part_number = 'ABC-123') AS total_sale_quantity"
-    },
-    {
-        "q": "XYZ-900의 총 구매수량과 총 판매수량을 모두 보여줘 (없으면 0)",
-        "sql": "SELECT COALESCE((SELECT SUM(purchase_quantity) FROM purchase_orders WHERE part_number = 'XYZ-900'), 0) AS total_purchase_quantity, COALESCE((SELECT SUM(sale_quantity) FROM sales_orders WHERE part_number = 'XYZ-900'), 0) AS total_sale_quantity"
-    },
-    {
-        "q": "LMN-777 부품의 최근 1년간 총 구매량과 판매량",
-        "sql": "SELECT (SELECT SUM(purchase_quantity) FROM purchase_orders WHERE part_number = 'LMN-777' AND purchase_date >= CURRENT_DATE - INTERVAL '1 year') AS total_purchase_quantity, (SELECT SUM(sale_quantity) FROM sales_orders WHERE part_number = 'LMN-777' AND sale_date >= CURRENT_DATE - INTERVAL '1 year') AS total_sale_quantity"
-    },
-    {
-        "q": "현재고와 기초재고 차이가 가장 큰 제품을 가장 많이 사간 구매사와 차이가 가장 적은 제품을 가장 많이 들여온 제조사",
-        "sql": """WITH inventory_diff AS (
-    SELECT cp.part_number, ABS(cp.current_quantity - ii.initial_quantity) AS abs_diff
-    FROM current_products cp
-    JOIN initial_inventory ii ON cp.part_number = ii.part_number
-),
-max_part AS (
-    SELECT part_number FROM inventory_diff ORDER BY abs_diff DESC LIMIT 1
-),
-min_part AS (
-    SELECT part_number FROM inventory_diff ORDER BY abs_diff ASC LIMIT 1
-),
-top_vendor AS (
-    SELECT v.vendor_name, SUM(so.sale_quantity) AS qty
-    FROM sales_orders so
-    JOIN vendors v ON so.vendor_id = v.vendor_id
-    WHERE so.part_number = (SELECT part_number FROM max_part)
-    GROUP BY v.vendor_name ORDER BY qty DESC LIMIT 1
-),
-top_manufacturer AS (
-    SELECT m.name, SUM(po.purchase_quantity) AS qty
-    FROM purchase_orders po
-    JOIN manufacturers m ON po.manufacturer_id = m.manufacturer_id
-    WHERE po.part_number = (SELECT part_number FROM min_part)
-    GROUP BY m.name ORDER BY qty DESC LIMIT 1
-)
-SELECT
-    (SELECT part_number FROM max_part)   AS 차이최대_제품,
-    (SELECT vendor_name FROM top_vendor) AS 가장많이_구매한_고객사,
-    (SELECT part_number FROM min_part)   AS 차이최소_제품,
-    (SELECT name FROM top_manufacturer)  AS 가장많이_들여온_제조사"""
-    },
-    {
-        "q": "매출이 가장 높은 고객사와 매입이 가장 많은 제조사 동시에 알려줘",
-        "sql": """WITH top_vendor AS (
-    SELECT v.vendor_name, SUM(so.sale_quantity * so.actual_selling_price)::BIGINT AS total_revenue
-    FROM sales_orders so
-    JOIN vendors v ON so.vendor_id = v.vendor_id
-    GROUP BY v.vendor_name ORDER BY total_revenue DESC LIMIT 1
-),
-top_manufacturer AS (
-    SELECT m.name, SUM(po.purchase_quantity)::BIGINT AS total_qty
-    FROM purchase_orders po
-    JOIN manufacturers m ON po.manufacturer_id = m.manufacturer_id
-    GROUP BY m.name ORDER BY total_qty DESC LIMIT 1
-)
-SELECT
-    (SELECT vendor_name FROM top_vendor)      AS 매출1위_고객사,
-    (SELECT total_revenue FROM top_vendor)    AS 총매출액,
-    (SELECT name FROM top_manufacturer)       AS 매입1위_제조사,
-    (SELECT total_qty FROM top_manufacturer)  AS 총매입수량"""
-    },
-    {
-        "q": "카테고리 중 매출 가장 높은 것과 가장 낮은 것 둘 다 보여줘",
-        "sql": """WITH category_sales AS (
-    SELECT p.description, SUM(so.sale_quantity * so.actual_selling_price)::BIGINT AS total_revenue
-    FROM sales_orders so
-    JOIN products p ON so.part_number = p.part_number
-    GROUP BY p.description
-)
-SELECT
-    MAX(description) FILTER (WHERE total_revenue = (SELECT MAX(total_revenue) FROM category_sales)) AS 매출최고_카테고리,
-    MAX(total_revenue) FILTER (WHERE total_revenue = (SELECT MAX(total_revenue) FROM category_sales)) AS 최고_매출액,
-    MAX(description) FILTER (WHERE total_revenue = (SELECT MIN(total_revenue) FROM category_sales)) AS 매출최저_카테고리,
-    MIN(total_revenue) FILTER (WHERE total_revenue = (SELECT MIN(total_revenue) FROM category_sales)) AS 최저_매출액
-FROM category_sales"""
-    },
-    {
-        "q": "EP1K50FC256-1 가장 많이 사간 고객사와 가장 많이 납품한 제조사",
-        "sql": """WITH top_vendor AS (
-    SELECT v.vendor_name, SUM(so.sale_quantity)::BIGINT AS qty
-    FROM sales_orders so
-    JOIN vendors v ON so.vendor_id = v.vendor_id
-    WHERE so.part_number = 'EP1K50FC256-1'
-    GROUP BY v.vendor_name ORDER BY qty DESC LIMIT 1
-),
-top_manufacturer AS (
-    SELECT m.name, SUM(po.purchase_quantity)::BIGINT AS qty
-    FROM purchase_orders po
-    JOIN manufacturers m ON po.manufacturer_id = m.manufacturer_id
-    WHERE po.part_number = 'EP1K50FC256-1'
-    GROUP BY m.name ORDER BY qty DESC LIMIT 1
-)
-SELECT
-    (SELECT vendor_name FROM top_vendor)     AS 최다구매_고객사,
-    (SELECT qty FROM top_vendor)             AS 구매수량,
-    (SELECT name FROM top_manufacturer)      AS 최다납품_제조사,
-    (SELECT qty FROM top_manufacturer)       AS 납품수량"""
-    },
-    {
-        "q": "기초재고가 가장 많은 5개 제품 중 현재 재고가 2번째로 많은 제품의 제조사와 판매사",
-        "sql": """WITH top_initial_5 AS (
-    SELECT
-        p.part_number,
-        p.description,
-        ii.initial_quantity,
-        cp.current_quantity
-    FROM products p
-    JOIN initial_inventory ii
-        ON p.part_number = ii.part_number
-    JOIN current_products cp
-        ON p.part_number = cp.part_number
-    ORDER BY ii.initial_quantity DESC
-    LIMIT 5
-),
-target_product AS (
-    SELECT *
-    FROM top_initial_5
-    ORDER BY current_quantity DESC
-    OFFSET 1
-    LIMIT 1
-)
-SELECT
-    t.part_number,
-    t.description,
-    t.initial_quantity AS "기초재고",
-    t.current_quantity AS "현재고",
-    (
-        SELECT m.name
-        FROM purchase_orders po
-        JOIN manufacturers m
-            ON po.manufacturer_id = m.manufacturer_id
-        WHERE po.part_number = t.part_number
-        GROUP BY m.name
-        ORDER BY SUM(po.purchase_quantity) DESC
-        LIMIT 1
-    ) AS "주요 제조사",
-    (
-        SELECT v.vendor_name
-        FROM sales_orders so
-        JOIN vendors v
-            ON so.vendor_id = v.vendor_id
-        WHERE so.part_number = t.part_number
-        GROUP BY v.vendor_name
-        ORDER BY SUM(so.sale_quantity) DESC
-        LIMIT 1
-    ) AS "주요 판매사"
-FROM target_product t"""
-    },
-    {
-        "q": "올해 vs 작년 월별 매출 YoY 증감률",
-        "sql": """WITH monthly AS (
-    SELECT EXTRACT(YEAR FROM sale_date)::INT AS yr,
-           EXTRACT(MONTH FROM sale_date)::INT AS mn,
-           SUM(sale_quantity * actual_selling_price) AS rev
-    FROM sales_orders
-    WHERE EXTRACT(YEAR FROM sale_date) >= EXTRACT(YEAR FROM CURRENT_DATE) - 1
-    GROUP BY yr, mn
-)
-SELECT cur.mn AS month,
-       cur.rev AS 올해매출,
-       prev.rev AS 작년매출,
-       ROUND((cur.rev - prev.rev) / NULLIF(prev.rev, 0) * 100, 1) AS yoy_pct
-FROM monthly cur
-JOIN monthly prev ON cur.mn = prev.mn
-     AND cur.yr = prev.yr + 1
-ORDER BY cur.mn"""
-    },
-    {
-        "q": "최근 6개월 전월대비 매출 증감률",
-        "sql": """WITH monthly AS (
-    SELECT DATE_TRUNC('month', sale_date) AS month,
-           SUM(sale_quantity * actual_selling_price) AS rev
-    FROM sales_orders
-    WHERE sale_date >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '6 months'
-    GROUP BY month
-)
-SELECT month, rev,
-       LAG(rev) OVER (ORDER BY month) AS prev_rev,
-       ROUND((rev - LAG(rev) OVER (ORDER BY month))
-             / NULLIF(LAG(rev) OVER (ORDER BY month), 0) * 100, 1) AS mom_pct
-FROM monthly ORDER BY month"""
-    },
-    {
-        "q": "2024년 상반기 매출",
-        "sql": "SELECT SUM(sale_quantity * actual_selling_price) AS revenue FROM sales_orders WHERE EXTRACT(YEAR FROM sale_date) = 2024 AND EXTRACT(MONTH FROM sale_date) BETWEEN 1 AND 6"
-    },
-    {
-        "q": "2024년 하반기 매입",
-        "sql": "SELECT SUM(purchase_quantity * actual_unit_cost) AS purchase_amount FROM purchase_orders WHERE EXTRACT(YEAR FROM purchase_date) = 2024 AND EXTRACT(MONTH FROM purchase_date) BETWEEN 7 AND 12"
-    },
-    {
-        "q": "올해 상반기 vs 하반기 매출 비교",
-        "sql": """SELECT
-    CASE WHEN EXTRACT(MONTH FROM sale_date) BETWEEN 1 AND 6 THEN '상반기' ELSE '하반기' END AS half,
-    SUM(sale_quantity * actual_selling_price) AS revenue
-FROM sales_orders
-WHERE EXTRACT(YEAR FROM sale_date) = EXTRACT(YEAR FROM CURRENT_DATE)
-GROUP BY half ORDER BY half"""
-    },
-    {
-        "q": "올해 IC 카테고리 매출",
-        "sql": """SELECT SUM(so.sale_quantity * so.actual_selling_price) AS revenue
-FROM sales_orders so
-JOIN products p ON so.part_number = p.part_number
-WHERE p.description = 'IC'
-  AND EXTRACT(YEAR FROM so.sale_date) = EXTRACT(YEAR FROM CURRENT_DATE)"""
-    },
-    {
-        "q": "2024년 카테고리별 분기별 매출",
-        "sql": """SELECT p.description AS category,
-       EXTRACT(QUARTER FROM so.sale_date)::INT AS quarter,
-       SUM(so.sale_quantity * so.actual_selling_price) AS revenue
-FROM sales_orders so
-JOIN products p ON so.part_number = p.part_number
-WHERE EXTRACT(YEAR FROM so.sale_date) = 2024
-GROUP BY category, quarter
-ORDER BY category, quarter"""
-    },
-    {
-        "q": "Digikey의 2024년 월별 매출 추이",
-        "sql": """SELECT DATE_TRUNC('month', so.sale_date) AS month,
-       SUM(so.sale_quantity * so.actual_selling_price) AS revenue
-FROM sales_orders so
-JOIN vendors v ON so.vendor_id = v.vendor_id
-WHERE v.vendor_name = 'Digikey'
-  AND EXTRACT(YEAR FROM so.sale_date) = 2024
-GROUP BY month ORDER BY month"""
-    },
-    {
-        "q": "PANASONIC에서 올해 월별 매입 추이",
-        "sql": """SELECT DATE_TRUNC('month', po.purchase_date) AS month,
-       SUM(po.purchase_quantity * po.actual_unit_cost) AS purchase_amount
-FROM purchase_orders po
-JOIN manufacturers m ON po.manufacturer_id = m.manufacturer_id
-WHERE m.name = 'PANASONIC'
-  AND EXTRACT(YEAR FROM po.purchase_date) = EXTRACT(YEAR FROM CURRENT_DATE)
-GROUP BY month ORDER BY month"""
-    },
-    {
-        "q": "2024년 월별 누적 매출",
-        "sql": """SELECT month, revenue,
-       SUM(revenue) OVER (ORDER BY month) AS cumulative_revenue
-FROM (
-    SELECT DATE_TRUNC('month', sale_date) AS month,
-           SUM(sale_quantity * actual_selling_price) AS revenue
-    FROM sales_orders
-    WHERE EXTRACT(YEAR FROM sale_date) = 2024
-    GROUP BY month
-) sub ORDER BY month"""
-    },
-    {
-        "q": "월 매출 1억 이상인 달",
-        "sql": """SELECT DATE_TRUNC('month', sale_date) AS month,
-       SUM(sale_quantity * actual_selling_price) AS revenue
-FROM sales_orders
-GROUP BY month
-HAVING SUM(sale_quantity * actual_selling_price) >= 100000000
-ORDER BY month"""
-    },
-    {
-        "q": "연간 매입 1000건 이상인 제조사",
-        "sql": """SELECT m.name, COUNT(*) AS order_count,
-       SUM(po.purchase_quantity * po.actual_unit_cost) AS total_amount
-FROM purchase_orders po
-JOIN manufacturers m ON po.manufacturer_id = m.manufacturer_id
-WHERE EXTRACT(YEAR FROM po.purchase_date) = EXTRACT(YEAR FROM CURRENT_DATE)
-GROUP BY m.name
-HAVING COUNT(*) >= 1000
-ORDER BY total_amount DESC"""
-    },
-    {
-        "q": "고객사별 매출 점유율",
-        "sql": """SELECT v.vendor_name,
-       SUM(so.sale_quantity * so.actual_selling_price) AS revenue,
-       ROUND(SUM(so.sale_quantity * so.actual_selling_price)
-             / SUM(SUM(so.sale_quantity * so.actual_selling_price)) OVER () * 100, 1) AS share_pct
-FROM sales_orders so
-JOIN vendors v ON so.vendor_id = v.vendor_id
-GROUP BY v.vendor_name
-ORDER BY revenue DESC"""
-    },
-    {
-        "q": "제조사별 매입 점유율",
-        "sql": """SELECT m.name,
-       SUM(po.purchase_quantity * po.actual_unit_cost) AS amount,
-       ROUND(SUM(po.purchase_quantity * po.actual_unit_cost)
-             / SUM(SUM(po.purchase_quantity * po.actual_unit_cost)) OVER () * 100, 1) AS share_pct
-FROM purchase_orders po
-JOIN manufacturers m ON po.manufacturer_id = m.manufacturer_id
-GROUP BY m.name
-ORDER BY amount DESC"""
-    },
-    {
-        "q": "월별 평균판매단가 추이",
-        "sql": """SELECT DATE_TRUNC('month', sale_date) AS month,
-       ROUND(SUM(sale_quantity * actual_selling_price)::NUMERIC
-             / NULLIF(SUM(sale_quantity), 0), 2) AS asp
-FROM sales_orders
-GROUP BY month ORDER BY month"""
-    },
-    {
-        "q": "월별 평균매입단가 추이",
-        "sql": """SELECT DATE_TRUNC('month', purchase_date) AS month,
-       ROUND(SUM(purchase_quantity * actual_unit_cost)::NUMERIC
-             / NULLIF(SUM(purchase_quantity), 0), 2) AS avg_purchase_price
-FROM purchase_orders
-GROUP BY month ORDER BY month"""
-    },
-    {
-        "q": "카테고리별 재고 자산가치",
-        "sql": """SELECT p.description AS category,
-       SUM(cp.current_quantity) AS total_qty,
-       SUM(cp.current_quantity * p.std_unit_cost) AS stock_value
-FROM current_products cp
-JOIN products p ON cp.part_number = p.part_number
-GROUP BY p.description
-ORDER BY stock_value DESC"""
-    },
-    {
-        "q": "재고 금액 상위 10개 품목",
-        "sql": """SELECT cp.part_number, p.description,
-       cp.current_quantity,
-       p.std_unit_cost,
-       (cp.current_quantity * p.std_unit_cost) AS stock_value
-FROM current_products cp
-JOIN products p ON cp.part_number = p.part_number
-ORDER BY stock_value DESC LIMIT 10"""
-    },
-    {
-        "q": "재고일수 계산 (평균 일일 판매량 기준)",
-        "sql": """WITH daily_avg AS (
-    SELECT part_number,
-           SUM(sale_quantity)::NUMERIC / NULLIF(COUNT(DISTINCT sale_date), 0) AS avg_daily_sales
-    FROM sales_orders
-    WHERE sale_date >= CURRENT_DATE - INTERVAL '90 days'
-    GROUP BY part_number
-)
-SELECT cp.part_number, p.description,
-       cp.current_quantity,
-       ROUND(d.avg_daily_sales, 1) AS avg_daily_sales,
-       CASE WHEN d.avg_daily_sales > 0
-            THEN ROUND(cp.current_quantity / d.avg_daily_sales, 0)
-            ELSE NULL END AS days_of_stock
-FROM current_products cp
-JOIN products p ON cp.part_number = p.part_number
-LEFT JOIN daily_avg d ON cp.part_number = d.part_number
-WHERE cp.current_quantity > 0
-ORDER BY days_of_stock ASC NULLS LAST LIMIT 20"""
-    },
-    {
-        "q": "올해 월별 매출총이익 추이",
-        "sql": """SELECT DATE_TRUNC('month', so.sale_date) AS month,
-       SUM(so.sale_quantity * so.actual_selling_price) AS revenue,
-       SUM(so.sale_quantity * p.std_unit_cost) AS cost,
-       SUM(so.sale_quantity * (so.actual_selling_price - p.std_unit_cost)) AS gross_profit
-FROM sales_orders so
-JOIN products p ON so.part_number = p.part_number
-WHERE EXTRACT(YEAR FROM so.sale_date) = EXTRACT(YEAR FROM CURRENT_DATE)
-GROUP BY month ORDER BY month"""
-    },
-    {
-        "q": "고객사별 평균 마진율",
-        "sql": """SELECT v.vendor_name,
-       SUM(so.sale_quantity * so.actual_selling_price) AS revenue,
-       SUM(so.sale_quantity * p.std_unit_cost) AS cost,
-       ROUND(SUM(so.sale_quantity * (so.actual_selling_price - p.std_unit_cost))::NUMERIC
-             / NULLIF(SUM(so.sale_quantity * so.actual_selling_price), 0) * 100, 1) AS margin_pct
-FROM sales_orders so
-JOIN vendors v ON so.vendor_id = v.vendor_id
-JOIN products p ON so.part_number = p.part_number
-GROUP BY v.vendor_name
-ORDER BY margin_pct DESC"""
-    },
-    {
-        "q": "올해 신규 거래 고객사 (작년에 거래 없던)",
-        "sql": """SELECT DISTINCT v.vendor_name
-FROM sales_orders so
-JOIN vendors v ON so.vendor_id = v.vendor_id
-WHERE EXTRACT(YEAR FROM so.sale_date) = EXTRACT(YEAR FROM CURRENT_DATE)
-  AND so.vendor_id NOT IN (
-      SELECT DISTINCT vendor_id FROM sales_orders
-      WHERE EXTRACT(YEAR FROM sale_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1
-  )
-ORDER BY v.vendor_name"""
-    },
-    {
-        "q": "작년 거래했지만 올해 거래 없는 고객사",
-        "sql": """SELECT DISTINCT v.vendor_name
-FROM sales_orders so
-JOIN vendors v ON so.vendor_id = v.vendor_id
-WHERE EXTRACT(YEAR FROM so.sale_date) = EXTRACT(YEAR FROM CURRENT_DATE) - 1
-  AND so.vendor_id NOT IN (
-      SELECT DISTINCT vendor_id FROM sales_orders
-      WHERE EXTRACT(YEAR FROM sale_date) = EXTRACT(YEAR FROM CURRENT_DATE)
-  )
-ORDER BY v.vendor_name"""
-    },
-    {
-        "q": "2024년 3월 매출",
-        "sql": "SELECT SUM(sale_quantity * actual_selling_price) AS revenue FROM sales_orders WHERE sale_date >= '2024-03-01' AND sale_date < '2024-04-01'"
-    },
-    {
-        "q": "2024년 3월~6월 매출",
-        "sql": "SELECT SUM(sale_quantity * actual_selling_price) AS revenue FROM sales_orders WHERE sale_date >= '2024-03-01' AND sale_date < '2024-07-01'"
-    },
-    {
-        "q": "올해 거래한 고객사 수",
-        "sql": "SELECT COUNT(DISTINCT vendor_id) AS vendor_count FROM sales_orders WHERE EXTRACT(YEAR FROM sale_date) = EXTRACT(YEAR FROM CURRENT_DATE)"
-    },
-    {
-        "q": "올해 거래한 제조사 수",
-        "sql": "SELECT COUNT(DISTINCT manufacturer_id) AS mfr_count FROM purchase_orders WHERE EXTRACT(YEAR FROM purchase_date) = EXTRACT(YEAR FROM CURRENT_DATE)"
-    },
-    {
-        "q": "판매된 적 있는 품목 수",
-        "sql": "SELECT COUNT(DISTINCT part_number) AS product_count FROM sales_orders"
-    },
-    {
-        "q": "고객사별 매출 순위",
-        "sql": """SELECT v.vendor_name,
-       SUM(so.sale_quantity * so.actual_selling_price) AS revenue,
-       RANK() OVER (ORDER BY SUM(so.sale_quantity * so.actual_selling_price) DESC) AS rank
-FROM sales_orders so
-JOIN vendors v ON so.vendor_id = v.vendor_id
-GROUP BY v.vendor_name
-ORDER BY rank"""
-    },
-    {
-        "q": "요일별 평균 판매량",
-        "sql": """SELECT TO_CHAR(sale_date, 'Day') AS day_of_week,
-       EXTRACT(DOW FROM sale_date) AS dow,
-       ROUND(AVG(sale_quantity), 1) AS avg_qty,
-       COUNT(*) AS order_count
-FROM sales_orders
-GROUP BY day_of_week, dow
-ORDER BY dow"""
-    },
-    {
-        "q": "EP1K50FC256-1 최근 판매이력 10건",
-        "sql": """SELECT so.order_id, so.sale_date, v.vendor_name,
-       so.sale_quantity, so.actual_selling_price
-FROM sales_orders so
-JOIN vendors v ON so.vendor_id = v.vendor_id
-WHERE so.part_number = 'EP1K50FC256-1'
-ORDER BY so.sale_date DESC LIMIT 10"""
-    },
-    {
-        "q": "EP1K50FC256-1 최근 매입이력 10건",
-        "sql": """SELECT po.purchase_id, po.purchase_date, m.name AS manufacturer,
-       po.purchase_quantity, po.actual_unit_cost
-FROM purchase_orders po
-JOIN manufacturers m ON po.manufacturer_id = m.manufacturer_id
-WHERE po.part_number = 'EP1K50FC256-1'
-ORDER BY po.purchase_date DESC LIMIT 10"""
-    },
-    {
-        "q": "올해 전체 요약 (매출/매입/이익)",
-        "sql": """SELECT
-    (SELECT SUM(sale_quantity * actual_selling_price) FROM sales_orders
-     WHERE EXTRACT(YEAR FROM sale_date) = EXTRACT(YEAR FROM CURRENT_DATE)) AS 총매출,
-    (SELECT SUM(purchase_quantity * actual_unit_cost) FROM purchase_orders
-     WHERE EXTRACT(YEAR FROM purchase_date) = EXTRACT(YEAR FROM CURRENT_DATE)) AS 총매입,
-    (SELECT SUM(sale_quantity * actual_selling_price) FROM sales_orders
-     WHERE EXTRACT(YEAR FROM sale_date) = EXTRACT(YEAR FROM CURRENT_DATE))
-    -
-    (SELECT SUM(purchase_quantity * actual_unit_cost) FROM purchase_orders
-     WHERE EXTRACT(YEAR FROM purchase_date) = EXTRACT(YEAR FROM CURRENT_DATE)) AS 매출매입차이"""
-    },
-]
-
-# ── 2. 동의어 사전 (한국어/오타 → 정식명) ───────────────────
+# ── 1. 동의어 사전 (한국어/오타 → 정식명) - Refine 단계 ───────────────────
 SYNONYM_DATA = [
     {"term": "디지키", "canonical": "Digikey", "type": "vendor"},
     {"term": "마우저", "canonical": "Mouser", "type": "vendor"},
@@ -837,7 +74,125 @@ SYNONYM_DATA = [
     {"term": "단가", "canonical": "실제단가", "type": "column_hint"},
 ]
 
-# ── 3. 비즈니스 용어 정의 ────────────────────────────────────
+# ── 2. Few-shot SQL 예시 (질문-SQL 쌍) - SQLGEN 단계 ──────────────────────
+FEWSHOT_EXAMPLES = [
+
+    # ==========================================
+    # 1. 재고 및 제품 마스터
+    # ==========================================
+
+    {
+        "q": "현재 재고 자산 가치가 가장 높은 상위 5개 품목",
+        "sql": "SELECT cp.part_number, p.description, (cp.current_quantity * p.std_unit_cost) AS stock_value FROM current_products cp JOIN products p ON cp.part_number = p.part_number ORDER BY stock_value DESC LIMIT 5",
+        "comment": "재고 수량과 표준 단가를 곱하여 자산 가치를 산출하고 정렬"
+    },
+
+    {
+        "q": "재고가 10개 미만인 품목의 제조사 정보와 연락처",
+        "sql": "SELECT p.part_number, m.name, m.contact_email FROM current_products cp JOIN products p ON cp.part_number = p.part_number JOIN purchase_orders po ON p.part_number = po.part_number JOIN manufacturers m ON po.manufacturer_id = m.manufacturer_id WHERE cp.current_quantity < 10 GROUP BY p.part_number, m.name, m.contact_email",
+        "comment": "재고 부족 품목에 대한 제조사 정보 조회"
+    },
+
+    {
+        "q": "카테고리별 아이템 수와 평균 재고 보유량",
+        "sql": "SELECT p.description AS category, COUNT(*) AS item_count, ROUND(AVG(cp.current_quantity),2) AS avg_stock FROM current_products cp JOIN products p ON cp.part_number = p.part_number GROUP BY p.description",
+        "comment": "카테고리별 재고 통계"
+    },
+
+    {
+        "q": "품번이 '80-'로 시작하는 제품의 총 재고 수량",
+        "sql": "SELECT SUM(current_quantity) FROM current_products WHERE part_number LIKE '80-%'",
+        "comment": "LIKE 접두어 검색"
+    },
+
+
+    # ==========================================
+    # 2. 매출 분석
+    # ==========================================
+
+    {
+        "q": "올해 분기별 매출 현황",
+        "sql": "SELECT EXTRACT(QUARTER FROM sale_date) AS quarter, SUM(sale_quantity * actual_selling_price) AS revenue FROM sales_orders WHERE EXTRACT(YEAR FROM sale_date)=EXTRACT(YEAR FROM CURRENT_DATE) GROUP BY quarter ORDER BY quarter",
+        "comment": "분기별 매출 집계"
+    },
+
+    {
+        "q": "최근 7일간 일별 판매 트렌드",
+        "sql": "SELECT sale_date, SUM(sale_quantity * actual_selling_price) AS daily_rev FROM sales_orders WHERE sale_date >= CURRENT_DATE - INTERVAL '7 days' GROUP BY sale_date ORDER BY sale_date",
+        "comment": "최근 기간 매출 트렌드"
+    },
+
+    {
+        "q": "가장 비싸게 팔린 단일 주문 건",
+        "sql": "SELECT order_id, part_number, (sale_quantity * actual_selling_price) AS total_amount FROM sales_orders ORDER BY total_amount DESC LIMIT 1",
+        "comment": "최대 주문 금액"
+    },
+
+
+    # ==========================================
+    # 3. 고객 / 제조사 분석
+    # ==========================================
+
+    {
+        "q": "매출 기여도가 가장 높은 상위 3개 고객사",
+        "sql": "SELECT v.vendor_name, SUM(so.sale_quantity * so.actual_selling_price) AS total_rev FROM sales_orders so JOIN vendors v ON so.vendor_id = v.vendor_id GROUP BY v.vendor_name ORDER BY total_rev DESC LIMIT 3",
+        "comment": "고객사별 매출 분석"
+    },
+
+    {
+        "q": "특정 제조사 제품의 총 판매 수량",
+        "sql": "SELECT SUM(so.sale_quantity) FROM sales_orders so JOIN purchase_orders po ON so.part_number = po.part_number JOIN manufacturers m ON po.manufacturer_id = m.manufacturer_id WHERE m.name = 'Intel'",
+        "comment": "제조사별 판매량"
+    },
+
+
+    # ==========================================
+    # 4. 비용 / 매입 분석
+    # ==========================================
+
+    {
+        "q": "표준 원가보다 비싸게 매입한 사례",
+        "sql": "SELECT po.purchase_id, po.part_number, p.std_unit_cost, po.actual_unit_cost FROM purchase_orders po JOIN products p ON po.part_number = p.part_number WHERE po.actual_unit_cost > p.std_unit_cost",
+        "comment": "매입 단가 비교"
+    },
+
+    {
+        "q": "올해 총 매입액",
+        "sql": "SELECT SUM(purchase_quantity * actual_unit_cost) FROM purchase_orders WHERE EXTRACT(YEAR FROM purchase_date) = EXTRACT(YEAR FROM CURRENT_DATE)",
+        "comment": "연간 매입 비용"
+    },
+
+
+    # ==========================================
+    # 5. BI 분석
+    # ==========================================
+
+    {
+        "q": "품목별 실질 마진율 상위 10개",
+        "sql": "SELECT so.part_number, ROUND(AVG((so.actual_selling_price - p.std_unit_cost) / NULLIF(so.actual_selling_price,0) * 100),2) AS margin_pct FROM sales_orders so JOIN products p ON so.part_number = p.part_number GROUP BY so.part_number ORDER BY margin_pct DESC LIMIT 10",
+        "comment": "마진율 분석"
+    },
+
+    {
+        "q": "재고 회전율",
+        "sql": "SELECT cp.part_number, COALESCE(SUM(so.sale_quantity),0) / NULLIF(cp.current_quantity,0) AS turnover FROM current_products cp LEFT JOIN sales_orders so ON cp.part_number = so.part_number AND so.sale_date >= CURRENT_DATE - INTERVAL '90 days' GROUP BY cp.part_number, cp.current_quantity ORDER BY turnover DESC",
+        "comment": "재고 대비 판매 속도"
+    },
+
+
+    # ==========================================
+    # 6. 월별 매출
+    # ==========================================
+
+    {
+        "q": "월별 매출액",
+        "sql": "SELECT DATE_TRUNC('month', sale_date) AS month, SUM(sale_quantity * actual_selling_price) AS revenue FROM sales_orders GROUP BY month ORDER BY month",
+        "comment": "월별 매출 추이"
+    }
+
+]
+
+# ── 3. 비즈니스 용어 정의 - SQLGEN 단계 ────────────────────────────────────
 BIZTERM_DATA = [
             {"id": "term_inv_turnover", "description": "재고회전율", "metadatas": {"sql": "보유 재고가 일정 기간 동안 몇 번이나 판매되었는지 나타내는 지표로, 수치가 높을수록 재고가 효율적으로 관리되고 있음을 의미함."}},
             {"id": "term_margin_rate", "description": "마진율", "metadatas": {"sql": "판매 가격에서 원가를 제외한 이익이 판매가에서 차지하는 비중으로, 수익성을 판단하는 핵심 지표."}},
@@ -864,8 +219,9 @@ BIZTERM_DATA = [
             {"id": "term_unique_lock", "description": "유니크-락", "metadatas": {"sql": "중복 등록 방지 제약으로 인해 동일한 업체가 신규로 등록되는 것을 차단하여 데이터 정합성을 유지하는 상태."}},
             {"id": "term_zero_base_violation", "description": "제로-베이스 위반", "metadatas": {"sql": "구매 이력보다 판매 날짜가 앞서는 등 시간적 선후 관계가 맞지 않는 논리적 데이터 오류 상태."}},
             {"id": "term_unit_tagging", "description": "유닛-태깅", "metadatas": {"sql": "분기별 예산 수립을 위해 표준 매입 원가를 확정하고 관리 기준을 설정하는 행위."}}
-        ]   
-# ── 4. 테이블-컬럼 Rich 문장 (스키마 설명) ── RAG 강화 버전 ──────────────────
+        ]  
+
+# ── 4. 테이블-컬럼 Rich 문장 (스키마 설명) - SQLGEN 단계 ──────────────────
 TABLE_SCHEMA_DATA = [
             {
                 "id": "products",
@@ -924,7 +280,8 @@ TABLE_SCHEMA_DATA = [
                 }
             }
         ]
-# ── 5. 에러 → 해결책 패턴 ────────────────────────────────────
+
+# ── 5. 에러 → 해결책 패턴 - Retry Error 단계 ────────────────────────────────────
 ERROR_PATTERN_DATA = [
     {
         "doc": "에러: column last_updated does not exist 또는 WHERE last_updated 조건 사용. 원인: current_products는 스냅샷 테이블로 날짜 필터 금지. 해결: WHERE last_updated 조건 전부 제거하고 전체 조회",
@@ -1039,6 +396,3 @@ KEYWORD_INTENT_DATA = [
         "meta": {"intent": "growth_analysis", "table": "sales_orders"}
     },
 ]
-
-
-

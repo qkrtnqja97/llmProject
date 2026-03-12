@@ -1,5 +1,5 @@
-# etl/jobs/sqlgen_embedding_job.py
-# python -m jobs.sqlgen_embedding_job
+# llmServer/etl/jobs/sqlgen_embedding_job_sb.py
+# python -m jobs.sqlgen_embedding_job_sb
 
 from loaders.chroma_local_loader import get_collection, get_chroma_client
 from clients.gemini_embedder import GeminiEmbedder
@@ -13,14 +13,14 @@ client = get_chroma_client()
 
 
 # -------------------------------------------------
-# Table Schema
+# SB SCHEMA
 # -------------------------------------------------
 
 def load_schema():
 
-    print("\n🚀 BASELINE Schema")
+    print("\n🚀 SB Schema")
 
-    collection = get_collection(client, "table_schema_store")
+    collection = get_collection(client,"SB_table_schema_store")
 
     if RESET:
         collection.delete(where={})
@@ -31,7 +31,20 @@ def load_schema():
 
     for schema in TABLE_SCHEMA_DATA:
 
-        docs.append(schema["description"])
+        doc = f"""
+Table: {schema['id']}
+
+Columns:
+{schema['metadatas']['columns']}
+
+Description:
+{schema['description']}
+
+Rules:
+{schema['metadatas']['sql']}
+""".strip()
+
+        docs.append(doc)
         ids.append(schema["id"])
         metas.append(schema["metadatas"])
 
@@ -44,18 +57,18 @@ def load_schema():
         metadatas=metas
     )
 
-    print(f"✅ {len(ids)} schema 적재")
+    print(f"✅ {len(ids)} SB schema 적재")
 
 
 # -------------------------------------------------
-# BIZTERM
+# SB BIZTERM
 # -------------------------------------------------
 
 def load_bizterm():
 
-    print("\n🚀 BASELINE BizTerm")
+    print("\n🚀 SB BizTerm")
 
-    collection = get_collection(client, "bizterm_store")
+    collection = get_collection(client,"SB_bizterm_store")
 
     if RESET:
         collection.delete(where={})
@@ -66,7 +79,14 @@ def load_bizterm():
 
     for term in BIZTERM_DATA:
 
-        docs.append(term["description"])
+        doc = f"""
+Business Term: {term['description']}
+
+Definition:
+{term['metadatas']['sql']}
+""".strip()
+
+        docs.append(doc)
         ids.append(term["id"])
         metas.append(term["metadatas"])
 
@@ -79,18 +99,18 @@ def load_bizterm():
         metadatas=metas
     )
 
-    print(f"✅ {len(ids)} bizterm 적재")
+    print(f"✅ {len(ids)} SB bizterm 적재")
 
 
 # -------------------------------------------------
-# FEWSHOT
+# SB FEWSHOT
 # -------------------------------------------------
 
 def load_fewshot():
 
-    print("\n🚀 BASELINE Fewshot")
+    print("\n🚀 SB Fewshot")
 
-    collection = get_collection(client, "fewshot_store")
+    collection = get_collection(client,"SB_fewshot_store")
 
     if RESET:
         collection.delete(where={})
@@ -102,10 +122,12 @@ def load_fewshot():
     for i, item in enumerate(FEWSHOT_EXAMPLES):
 
         doc = f"""
-[QUESTION]
+SQL Example
+
+Question:
 {item['q']}
 
-[SQL]
+SQL:
 {item['sql']}
 """.strip()
 
@@ -126,19 +148,18 @@ def load_fewshot():
         metadatas=metas
     )
 
-    print(f"✅ {len(ids)} fewshot 적재")
+    print(f"✅ {len(ids)} SB fewshot 적재")
 
 
 def run():
 
-    print("🔥 BASELINE Embedding Start")
+    print("🔥 SB Embedding Start")
 
     load_schema()
     load_bizterm()
     load_fewshot()
 
-
-    print("\n🎉 BASELINE 완료")
+    print("\n🎉 SB 완료")
 
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@ CHROMA_CONFIG = {
     'host': os.getenv("CHROMA_HOST"),
     'port': os.getenv("CHROMA_PORT"),
     'ssl': os.getenv("CHROMA_SSL"),
-    'persist_dir': "../../infra/chroma/vector_db"
+    'persist_dir': "../infra/chroma/vector_db"
 
 }
 
