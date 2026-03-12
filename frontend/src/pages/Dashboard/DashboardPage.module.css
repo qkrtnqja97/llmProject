@@ -1,0 +1,479 @@
+/* ============================================================
+    📍 전역 설정 및 변수 (컴포넌트 스코프)
+   ============================================================ */
+.container {
+  padding: 24px;
+  max-width: 1600px;
+  margin: 0 auto;
+  color: var(--text-main);
+  animation: fadeIn 0.4s ease-out;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* --- 헤더 섹션 --- */
+.header {
+  flex-shrink: 0;
+  margin-bottom: 20px;
+}
+
+.header h1 {
+  color: var(--text-main);
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.header p {
+  color: var(--text-sub);
+  font-size: 1rem;
+}
+
+/* ============================================================
+    📍 [1행] 레이아웃: 경영 실적(좌) + 긴급 구매(우) 높이 통일
+   ============================================================ */
+.topGrid {
+  display: flex;
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 24px;
+}
+
+.mainGraphCard {
+  flex: 7;
+  min-width: 0;
+  height: 340px;
+  display: flex;
+  flex-direction: column;
+}
+
+.chartArea {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  position: relative;
+}
+
+.inventoryCard {
+  flex: 3;
+  min-width: 150px;
+  height: 340px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ============================================================
+    📍 경영 실적 그래프 필터 UI
+   ============================================================ */
+.headerControls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.metricFilters {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-item);
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.checkboxLabel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-main);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+
+.checkboxLabel input[type="checkbox"] {
+  display: none;
+}
+
+.customCheck {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 2px solid transparent;
+  transition: transform 0.2s ease;
+}
+
+.checkboxLabel input[type="checkbox"]:not(:checked) + .customCheck {
+  background-color: transparent !important;
+  border-color: var(--text-sub);
+  opacity: 0.4;
+}
+
+.checkboxLabel input[type="checkbox"]:checked + .customCheck {
+  transform: scale(1.2);
+}
+
+/* ============================================================
+    📍 [수정] 긴급 구매 리스트 (파트번호 강조 및 일렬 나열)
+   ============================================================ */
+.headerMoreButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--bg-item);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-sub);
+  cursor: pointer;
+}
+
+.inventoryListArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  overflow-y: hidden;
+  width: 100%;
+}
+
+.inventoryListArea.expanded {
+  overflow-y: auto;
+}
+
+.inventoryList {
+  width: 90%;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.inventoryItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  /* 세로 높이 고정 및 내부 요소 넘침 방지 */
+  height: 68px;
+  background: var(--bg-item);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 0 12px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+  overflow: hidden; /* 세로 경계선 밖으로 나가는 것 차단 */
+}
+
+.inventoryItem:hover {
+  border-color: var(--accent-color);
+  background: var(--bg-card);
+}
+
+.itemInfo {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  /* 가로 너비 75% 엄격 제한 */
+  flex: 0 0 75%;
+  max-width: 75%;
+  min-width: 0; /* 텍스트 축약(ellipsis) 작동을 위한 핵심 속성 */
+}
+.partId {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--accent-color);
+  font-family: "JetBrains Mono", monospace;
+
+  /* 📍 한 줄 유지 및 가로 75% 초과 시 축약 */
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.inventoryItem .productName {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-sub);
+
+  /* 📍 한 줄 유지 및 가로 75% 초과 시 축약 */
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.stockStatus {
+  flex: 0 0 25%;
+  text-align: right;
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--text-sub);
+  font-weight: 600;
+}
+
+.stockCount {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #ff4757;
+  margin-right: 2px;
+}
+
+/* ============================================================
+    📍 상위/하위 5개 토글 버튼 스타일
+   ============================================================ */
+.toggleGroup {
+  display: flex;
+  background: var(--bg-item);
+  padding: 4px;
+  border-radius: 10px;
+  border: 1px solid var(--border-color);
+}
+
+.toggleBtn {
+  padding: 6px 16px;
+  border: none;
+  background: transparent;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-sub);
+  cursor: pointer;
+  border-radius: 7px;
+  transition: all 0.2s ease;
+}
+
+.toggleBtn.active {
+  background: var(--bg-card);
+  color: var(--accent-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.toggleBtn:hover:not(.active) {
+  color: var(--text-main);
+}
+
+/* ============================================================
+    📍 공통 카드 및 섹션 헤더
+   ============================================================ */
+.card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.titleWithIcon {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.titleWithIcon h2 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* ============================================================
+    📍 커스텀 드롭다운 및 필터 UI
+   ============================================================ */
+.inlineFilterGroup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.customSelectContainer {
+  position: relative;
+  width: 105px;
+  height: 36px;
+  background-color: var(--bg-item);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  cursor: pointer;
+}
+
+.customSelectTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 100%;
+  padding: 0 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.customOptions {
+  position: absolute;
+  top: 42px;
+  left: 0;
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 6px;
+  z-index: 1000;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  list-style: none;
+}
+
+.customOptions li {
+  padding: 8px 10px;
+  font-size: 0.85rem;
+  border-radius: 6px;
+}
+
+.customOptions li:hover {
+  background: var(--bg-item);
+  color: var(--accent-color);
+}
+
+.rotate {
+  transform: rotate(180deg);
+  transition: 0.2s;
+}
+
+/* ============================================================
+    📍 하단 테이블 레이아웃 (성과 품목)
+   ============================================================ */
+.bottomGrid {
+  width: 100%;
+}
+
+.combinedSalesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+}
+
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.table th,
+.table td {
+  padding: 16px 20px;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.table th {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-sub);
+  border-bottom: 2px solid var(--border-color);
+  text-align: left;
+}
+
+.productName {
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+/* 컬럼 너비 배분 */
+.table th:nth-child(1),
+.table td:nth-child(1) {
+  width: 30%;
+}
+.table th:nth-child(2),
+.table td:nth-child(2) {
+  width: 23%;
+  text-align: right;
+}
+.table th:nth-child(3),
+.table td:nth-child(3) {
+  width: 23%;
+  text-align: right;
+}
+.table th:nth-child(4),
+.table td:nth-child(4) {
+  width: 24%;
+  text-align: right;
+}
+
+.clickableRow:hover {
+  background-color: var(--bg-item);
+  cursor: pointer;
+}
+.selectedRow {
+  background-color: rgba(var(--accent-rgb), 0.05) !important;
+}
+
+.redText {
+  color: #ff4757;
+}
+.blueText {
+  color: var(--accent-color);
+}
+
+/* ============================================================
+    📍 애니메이션 및 반응형
+   ============================================================ */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1200px) {
+  .topGrid {
+    flex-direction: column;
+  }
+  .mainGraphCard,
+  .inventoryCard {
+    height: auto;
+    min-height: 340px;
+  }
+}

@@ -1,0 +1,198 @@
+/* AttendancePage.module.css */
+.container {
+  padding: 1.5rem 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  background-color: var(--bg-main);
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.titleWithDate {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.titleWithDate h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.currentDate {
+  font-size: 1rem;
+  color: var(--text-sub);
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* 버튼 스타일 추가 */
+.addBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--accent-color);
+  color: #ffffff !important;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.secondaryBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background-color: var(--bg-item);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* 근태 현황 대시보드 */
+.attendanceStats {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.statItem {
+  flex: 1;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1rem 1.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: var(--text-main);
+}
+
+.statText .label {
+  display: block;
+  font-size: 0.85rem;
+  color: var(--text-sub);
+  margin-bottom: 0.5rem;
+}
+
+.statText .count {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: "JetBrains Mono", monospace;
+}
+
+/* 테이블 영역 */
+.tableCard {
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.tableContainer {
+  overflow-x: auto;
+}
+
+.attendanceTable {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.attendanceTable th {
+  background: var(--bg-item);
+  padding: 1rem 1.25rem;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-sub);
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.attendanceTable td {
+  padding: 1.1rem 1.25rem;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+/* 행 호버 시 테마 포인트 컬러 아주 연하게 적용 */
+.attendanceTable tr:hover {
+  background: color-mix(in srgb, var(--accent-color), transparent 94%);
+}
+
+.timeCell {
+  font-family: "JetBrains Mono", monospace;
+  font-weight: 600;
+}
+
+/* 지각 시 텍스트 강조 */
+.redText {
+  color: #ff4757 !important;
+}
+
+/* 출근 기록 상태 배지 */
+.statusBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.normal {
+  background: rgba(16, 185, 129, 0.15);
+  color: #10b981;
+}
+.late {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+.working {
+  background: rgba(54, 153, 255, 0.15);
+  color: #3699ff;
+}
+.vacation {
+  background: rgba(99, 102, 241, 0.15);
+  color: #6366f1;
+}
+
+.statusDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.btnGroup {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.iconBtn {
+  padding: 0.4rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-item);
+  color: var(--text-sub);
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.iconBtn:hover {
+  border-color: var(--accent-color);
+  color: var(--accent-color);
+}

@@ -1,0 +1,192 @@
+/* OrderManagePage.module.css */
+.container {
+  padding: 2rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease-out;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2.5rem;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 1.5rem;
+}
+
+.titleSection {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.titleIcon {
+  color: var(--accent-color);
+}
+
+.titleSection h1 {
+  font-size: 1.8rem;
+  color: var(--text-main);
+  margin: 0;
+  font-weight: 500;
+}
+
+.addBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: var(--accent-color);
+  color: #ffffff;
+  border: none;
+  padding: 0.8rem 1.4rem;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 700;
+  transition: all 0.2s ease;
+}
+
+/* 컨트롤 섹션 */
+.tableControls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  gap: 1rem;
+}
+
+.searchBar {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  background: var(--bg-card);
+  padding: 0.8rem 1.2rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  flex: 1;
+  max-width: 450px;
+}
+
+.searchBar input {
+  background: none;
+  border: none;
+  color: var(--text-main);
+  outline: none;
+  width: 100%;
+}
+
+.filterGroup {
+  display: flex;
+  gap: 0.8rem;
+}
+
+.selectBox {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 0.8rem 1rem;
+  border-radius: 12px;
+  outline: none;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+/* 발주 카드 그리드 */
+.orderGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.orderCard {
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+.orderCard:hover {
+  transform: translateY(-5px);
+  border-color: var(--accent-color);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.cardHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.2rem;
+}
+
+.orderId {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.85rem;
+  color: var(--text-sub);
+}
+
+/* 발주 상태 배지 */
+.statusBadge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.pending {
+  background: rgba(255, 171, 0, 0.1);
+  color: #ffab00;
+}
+.ordered {
+  background: rgba(0, 184, 217, 0.1);
+  color: #00b8d9;
+}
+.received {
+  background: rgba(54, 179, 126, 0.1);
+  color: #36b37e;
+}
+
+.orderTitle {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.orderDetailRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.4rem 0;
+  font-size: 0.9rem;
+}
+
+.label {
+  color: var(--text-sub);
+}
+.value {
+  color: var(--text-main);
+  font-weight: 600;
+}
+
+.totalAmount {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px dashed var(--border-color);
+  text-align: right;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--accent-color);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

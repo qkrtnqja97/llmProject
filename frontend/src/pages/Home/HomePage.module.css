@@ -1,0 +1,123 @@
+/* src/pages/HomePage.module.css */
+
+.container {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-main);
+  color: var(--text-main);
+  position: relative;
+  overflow: hidden;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  animation: fadeIn 0.8s ease-out;
+  z-index: 1;
+  max-width: 600px;
+  padding: 0 20px;
+}
+
+/* --- 로고 섹션 스타일링 --- */
+.mainLogoSection {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.mainLogoIcon {
+  width: 320px;
+  height: 320px;
+  background-color: transparent;
+  padding: 20px;
+  border-radius: 24px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  /* 📍 테마와 상관없이 로고 본연의 푸른색을 유지하기 위해 filter 제거 */
+}
+
+/* 📍 어두운 테마에서 푸른색 로고가 더 돋보이게 은은한 후광 효과만 부여 */
+[data-theme="navy"] .mainLogoIcon {
+  filter: drop-shadow(0 0 20px rgba(54, 153, 255, 0.2));
+}
+
+.mainLogoIcon:hover {
+  transform: translateY(-8px) scale(1.02);
+}
+
+/* 이름 로고 (텍스트 대체 이미지) */
+.mainNameImg {
+  height: 96px;
+  width: auto;
+  object-fit: contain;
+  /* 📍 모든 테마에서 필터 없이 원본(푸른색) 유지 */
+  filter: none !important;
+}
+
+/* --- 텍스트 및 버튼 --- */
+.subtitle {
+  font-size: 1.25rem;
+  color: var(--text-sub);
+  margin-bottom: 48px;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+.startBtn {
+  padding: 18px 56px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #fff;
+  background-color: var(--accent-color);
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 25px
+    color-mix(in srgb, var(--accent-color), transparent 70%);
+}
+
+.startBtn:hover {
+  filter: brightness(1.1);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 30px
+    color-mix(in srgb, var(--accent-color), transparent 50%);
+}
+
+.footer {
+  position: absolute;
+  bottom: 40px;
+  font-size: 0.9rem;
+  color: var(--text-sub);
+  opacity: 0.5;
+}
+
+.loading {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--bg-main);
+  color: var(--text-sub);
+  font-weight: 600;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,0 +1,115 @@
+.container {
+  padding: 1.5rem 2rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.titleGroup h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin: 0;
+}
+
+.summaryRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+}
+
+.statCard {
+  background: var(--bg-card);
+  padding: 1.25rem;
+  border-radius: 14px;
+  border: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+}
+
+.statLabel {
+  font-size: 0.85rem;
+  color: var(--text-sub);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-family: "JetBrains Mono";
+}
+
+.tableCard {
+  background: var(--bg-card);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.quoteTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.quoteTable th {
+  background: var(--bg-item);
+  padding: 1rem;
+  font-size: 0.85rem;
+  color: var(--text-sub);
+  text-align: left;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.quoteTable td {
+  padding: 1.1rem 1rem;
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.9rem;
+}
+
+.amount {
+  text-align: right;
+  font-family: "JetBrains Mono";
+  font-weight: 700;
+}
+
+.statusBadge {
+  padding: 0.35rem 0.7rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.draft {
+  background: rgba(107, 114, 128, 0.1);
+  color: #6b7280;
+}
+.sent {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+.expired {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+.converted {
+  background: rgba(16, 185, 129, 0.1);
+  color: #10b981;
+}
+
+.convertBtn {
+  background: var(--accent-color);
+  color: white;
+  border: none;
+  padding: 0.5rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+}
