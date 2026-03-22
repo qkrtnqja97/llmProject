@@ -1,7 +1,7 @@
 # etl/jobs/sqlgen_embedding_job.py
 # python -m jobs.sqlgen_embedding_job
 
-from loaders.chroma_local_loader import get_collection, get_chroma_client
+from loaders.chroma_loader import get_collection, get_chroma_client
 from clients.gemini_embedder import GeminiEmbedder
 from jobs.static_data import TABLE_SCHEMA_DATA, BIZTERM_DATA, FEWSHOT_EXAMPLES
 

@@ -93,3 +93,8 @@ frontend_copy/
 
 ## 개인 설정
 pyproject.toml
+
+## 디비 실제 데이터
+infra/chroma/*
+infra/postgre/*
+infra/snapshots/*

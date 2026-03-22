@@ -1,4 +1,5 @@
 # etl/jobs/refine_embedding_job.py
+# python -m jobs.refine_embedding_job
 
 import sys
 import time
